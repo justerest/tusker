@@ -3,6 +3,7 @@ import { Task } from './Task';
 import { assert } from './utils/assert';
 import { EventPublisher } from './common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
+import { EmployeeRest } from './EmployeeRest';
 
 export enum EmployeeStatus {
   Free,
@@ -23,29 +24,24 @@ export class Employee {
 
   id!: Identity;
 
-  getStatus(): EmployeeStatus {
-    return this.status;
-  }
-
   planeTask(task: Task): void {
+    assert(!this.taskMap.has(task.id));
     this.taskMap.set(task.id, EmployeeTaskStatus.Planned);
-  }
-
-  workOnTask(task: Task): void {
-    assert(this.status !== EmployeeStatus.InWork);
-    this.taskMap.set(task.id, EmployeeTaskStatus.InWork);
-  }
-
-  pauseTask(task: Task): void {
-    assert(this.taskMap.has(task.id));
-    this.taskMap.set(task.id, EmployeeTaskStatus.Paused);
+    if (this.status === EmployeeStatus.Free) {
+      this.status = EmployeeStatus.Rest;
+      EventPublisher.instance.publish(new EmployeeRest(this));
+    }
   }
 
   completeWorkOnTask(task: Task): void {
     assert(this.taskMap.has(task.id));
     this.taskMap.set(task.id, EmployeeTaskStatus.Done);
     if (this.isAllDone()) {
+      this.status = EmployeeStatus.Free;
       EventPublisher.instance.publish(new EmployeeFree(this));
+    } else {
+      this.status = EmployeeStatus.Rest;
+      EventPublisher.instance.publish(new EmployeeRest(this));
     }
   }
 

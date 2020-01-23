@@ -37,26 +37,11 @@ export class Task {
     this.status = TaskStatus.InProgress;
   }
 
-  pause(): void {
-    assert(this.status === TaskStatus.InProgress);
-    this.status = TaskStatus.Paused;
-  }
-
-  resume(): void {
-    assert(this.status !== TaskStatus.InProgress);
-    this.status = TaskStatus.InProgress;
-  }
-
   finish(employees: Employee[]): void {
     assert(this.status < TaskStatus.Done);
     this.status = TaskStatus.Done;
     assert(employees.every((employee) => this.staff.has(employee.id)));
     employees.forEach((employee) => employee.completeWorkOnTask(this));
-  }
-
-  approve(): void {
-    assert(this.status !== TaskStatus.Approved);
-    this.status = TaskStatus.Approved;
   }
 
   attachEmployee(employee: Employee): void {
