@@ -3,15 +3,15 @@ import { Identity } from './common/Identity';
 import { Employee } from './Employee';
 
 export enum TaskStatus {
-  Planned,
-  InProgress,
-  Snoozed,
-  Done,
+  Planned = 'Planned',
+  InWork = 'InWork',
+  Snoozed = 'Snoozed',
+  Done = 'Done',
 }
 
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
-  private assignedEmployeeId?: Identity;
+  private executorId?: Employee['id'];
 
   id: Identity;
 
@@ -23,9 +23,38 @@ export class Task {
     return this.status;
   }
 
-  takeInWorkBy(employee: Employee): void {
-    assert(!this.assignedEmployeeId);
-    this.status = TaskStatus.InProgress;
-    this.assignedEmployeeId = employee.id;
+  getExecutor(): Employee['id'] | undefined {
+    return this.executorId;
+  }
+
+  assignExecutor(employeeId: Employee['id']): void {
+    assert(!this.isCurrentExecutor(employeeId));
+    if (this.executorId) {
+      this.vacateExecutor();
+    }
+    this.executorId = employeeId;
+  }
+
+  vacateExecutor(): void {
+    this.executorId = undefined;
+  }
+
+  takeInWork(): void {
+    assert(this.executorId);
+    this.status = TaskStatus.InWork;
+  }
+
+  complete(): void {
+    assert(this.status !== TaskStatus.Done);
+    this.status = TaskStatus.Done;
+  }
+
+  snooze(): void {
+    assert([TaskStatus.Done, TaskStatus.InWork].includes(this.status));
+    this.status = TaskStatus.Snoozed;
+  }
+
+  private isCurrentExecutor(employeeId: Identity) {
+    return !!this.executorId && Identity.equals(this.executorId, employeeId);
   }
 }

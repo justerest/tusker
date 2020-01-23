@@ -17,7 +17,8 @@ describe('Task', () => {
   });
 
   it('should change status to InProgress on start', () => {
-    task.takeInWorkBy(new Employee());
-    expect(task.getStatus()).toBe(TaskStatus.InProgress);
+    task.assignExecutor(new Employee().id);
+    task.takeInWork();
+    expect(task.getStatus()).toBe(TaskStatus.InWork);
   });
 });
