@@ -17,6 +17,8 @@ export class Employee {
 
   id!: Identity;
 
+  constructor() {}
+
   attachTask(task: Task): void {
     assert(!this.taskMap.has(task.id));
     this.taskMap.set(task.id, TaskStatus.Planned);
@@ -30,6 +32,17 @@ export class Employee {
     this.taskMap.delete(task.id);
     if (!this.taskMap.size) {
       this.free();
+    }
+  }
+
+  takeInWork(task: Task): void {
+    if (!this.taskMap.has(task.id)) {
+      this.attachTask(task);
+    }
+    if (this.status === EmployeeStatus.InWork) {
+      this.taskMap.set(this.getCurrentTaskId(), TaskStatus.Snoozed);
+    } else {
+      this.status = EmployeeStatus.InWork;
     }
   }
 
@@ -47,6 +60,12 @@ export class Employee {
     assert(this.taskMap.has(task.id));
     this.taskMap.set(task.id, TaskStatus.Snoozed);
     this.rest();
+  }
+
+  private getCurrentTaskId(): Identity {
+    const res = [...this.taskMap.entries()].find(([_, status]) => status === TaskStatus.InProgress);
+    assert(res);
+    return res[0];
   }
 
   private free() {
