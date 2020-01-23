@@ -1,15 +1,17 @@
 import { assert } from './utils/assert';
 import { Identity } from './common/Identity';
+import { Employee } from './Employee';
 
 export enum TaskStatus {
   Planned,
   InProgress,
-  Paused,
+  Snoozed,
   Done,
 }
 
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
+  private assignedEmployeeId?: Identity;
 
   id: Identity;
 
@@ -21,8 +23,9 @@ export class Task {
     return this.status;
   }
 
-  start(): void {
-    assert(this.status === TaskStatus.Planned);
+  takeInWorkBy(employee: Employee): void {
+    assert(!this.assignedEmployeeId);
     this.status = TaskStatus.InProgress;
+    this.assignedEmployeeId = employee.id;
   }
 }

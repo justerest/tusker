@@ -10,7 +10,7 @@ describe('EmployeeFree', () => {
       const task = new Task();
       const employee = new Employee();
       employee.attachTask(task);
-      employee.completeWorkOnTask(task);
+      employee.completeTask(task);
       listener.assertEmitted();
     });
 
@@ -21,8 +21,17 @@ describe('EmployeeFree', () => {
       const employee = new Employee();
       employee.attachTask(task);
       employee.attachTask(task2);
-      employee.completeWorkOnTask(task);
-      employee.completeWorkOnTask(task2);
+      employee.completeTask(task);
+      employee.completeTask(task2);
+      listener.assertEmitted();
+    });
+
+    it('if user detach task and user have no another tasks', () => {
+      const listener = createListener();
+      const task = new Task();
+      const employee = new Employee();
+      employee.attachTask(task);
+      employee.detachTask(task);
       listener.assertEmitted();
     });
   });
@@ -35,7 +44,18 @@ describe('EmployeeFree', () => {
       const employee = new Employee();
       employee.attachTask(task);
       employee.attachTask(task2);
-      employee.completeWorkOnTask(task);
+      employee.completeTask(task);
+      listener.assertNoEvents();
+    });
+
+    it('if user detach task and user have other tasks', () => {
+      const listener = createListener();
+      const task = new Task(1);
+      const task2 = new Task(2);
+      const employee = new Employee();
+      employee.attachTask(task);
+      employee.attachTask(task2);
+      employee.detachTask(task);
       listener.assertNoEvents();
     });
   });

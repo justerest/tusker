@@ -25,15 +25,33 @@ export class Employee {
     }
   }
 
-  completeWorkOnTask(task: Task): void {
+  detachTask(task: Task): void {
     assert(this.taskMap.has(task.id));
     this.taskMap.delete(task.id);
     if (!this.taskMap.size) {
-      this.status = EmployeeStatus.Free;
-      EventPublisher.instance.publish(new EmployeeFree(this));
+      this.free();
+    }
+  }
+
+  completeTask(task: Task): void {
+    assert(this.taskMap.has(task.id));
+    this.taskMap.delete(task.id);
+    if (!this.taskMap.size) {
+      this.free();
     } else {
       this.rest();
     }
+  }
+
+  snoozeTask(task: Task): void {
+    assert(this.taskMap.has(task.id));
+    this.taskMap.set(task.id, TaskStatus.Snoozed);
+    this.rest();
+  }
+
+  private free() {
+    this.status = EmployeeStatus.Free;
+    EventPublisher.instance.publish(new EmployeeFree(this));
   }
 
   private rest(): void {

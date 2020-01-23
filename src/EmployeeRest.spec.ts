@@ -12,7 +12,7 @@ describe('EmployeeRest', () => {
       employee.attachTask(task);
       employee.attachTask(task2);
       const listener = createListener();
-      employee.completeWorkOnTask(task);
+      employee.completeTask(task);
       listener.assertEmitted();
     });
 
@@ -23,6 +23,15 @@ describe('EmployeeRest', () => {
       employee.attachTask(task);
       listener.assertEmitted();
     });
+
+    it('if user snooze task', () => {
+      const task = new Task();
+      const employee = new Employee();
+      employee.attachTask(task);
+      const listener = createListener();
+      employee.snoozeTask(task);
+      listener.assertEmitted();
+    });
   });
 
   describe('should not be emitted', () => {
@@ -31,7 +40,7 @@ describe('EmployeeRest', () => {
       const employee = new Employee();
       employee.attachTask(task);
       const listener = createListener();
-      employee.completeWorkOnTask(task);
+      employee.completeTask(task);
       listener.assertNoEvents();
     });
   });

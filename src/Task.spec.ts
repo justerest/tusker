@@ -1,5 +1,5 @@
-import { Task, TaskStatus, TaskCreated } from './Task';
-import { EventPublisher } from './common/EventPublisher';
+import { Task, TaskStatus } from './Task';
+import { Employee } from './Employee';
 
 describe('Task', () => {
   let task: Task;
@@ -17,7 +17,7 @@ describe('Task', () => {
   });
 
   it('should change status to InProgress on start', () => {
-    task.start();
+    task.takeInWorkBy(new Employee());
     expect(task.getStatus()).toBe(TaskStatus.InProgress);
   });
 });
