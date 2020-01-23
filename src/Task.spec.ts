@@ -12,13 +12,6 @@ describe('Task', () => {
     expect(task).toBeInstanceOf(Task);
   });
 
-  it('should emit TaskCreated on create', () => {
-    const spy = jasmine.createSpy();
-    EventPublisher.instance.on(TaskCreated).subscribe(spy);
-    new Task();
-    expect(spy).toHaveBeenCalled();
-  });
-
   it('should be created with status Planned', () => {
     expect(task.getStatus()).toBe(TaskStatus.Planned);
   });
