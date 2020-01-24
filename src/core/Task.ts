@@ -9,11 +9,25 @@ export enum TaskStatus {
   Done = 'Done',
 }
 
+export abstract class Report {
+  abstract from: Date;
+}
+
+export class ProgressReport extends Report {
+  constructor(public from: Date, public progress: number) {
+    super();
+  }
+}
+
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
   private executorId?: Employee['id'];
+  private progress = 0;
+  private spentTime = 0;
 
   id: Identity;
+
+  plannedTime!: number;
 
   constructor(id: Identity = 1) {
     this.id = id;
@@ -64,10 +78,33 @@ export class Task {
   }
 
   complete(): void {
+    this.reportProgress(new ProgressReport(new Date(), 100));
     this.changeStatus(TaskStatus.Done);
   }
 
   snooze(): void {
     this.changeStatus(TaskStatus.Snoozed);
+  }
+
+  reportProgress(progressReport: ProgressReport): void {
+    assert(this.status === TaskStatus.InWork, 'Can not report progress not in work task');
+    this.setSpentTime(Date.now() - progressReport.from.getTime());
+    this.progress = progressReport.progress;
+  }
+
+  reportDeadTime(): void {}
+
+  getSpentTime(): number {
+    return this.spentTime;
+  }
+
+  private setSpentTime(spentTime: number): void {
+    if (this.spentTime < spentTime) {
+      this.spentTime = spentTime;
+    }
+  }
+
+  getProgress(): number {
+    return this.progress;
   }
 }

@@ -1,5 +1,5 @@
 import { Identity } from './common/Identity';
-import { Task } from './Task';
+import { Task, ProgressReport } from './Task';
 import { assert } from '../utils/assert';
 import { EventPublisher } from './common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
@@ -11,9 +11,46 @@ export enum EmployeeStatus {
   Rest = 'Rest',
 }
 
+class TaskHolder {
+  private map: Map<Task['id'], number> = new Map();
+  private completedTaskSet: Set<Task['id']> = new Set();
+
+  get size(): number {
+    return this.map.size - this.completedTaskSet.size;
+  }
+
+  constructor() {}
+
+  hasNotCompleted(taskId: Task['id']): boolean {
+    return this.map.has(taskId) && !this.completedTaskSet.has(taskId);
+  }
+
+  add(taskId: Task['id']): void {
+    assert(!this.hasNotCompleted(taskId), 'Task already exist');
+    this.map.set(taskId, 0);
+    this.completedTaskSet.delete(taskId);
+  }
+
+  addTime(taskId: Task['id'], time: number): void {
+    const spentTime = this.getTime(taskId);
+    this.map.set(taskId, spentTime + time);
+  }
+
+  getTime(taskId: Task['id']): number {
+    const spentTime = this.map.get(taskId);
+    assert(spentTime !== undefined, 'Task not exist');
+    return spentTime;
+  }
+
+  complete(taskId: Task['id']): void {
+    assert(this.hasNotCompleted(taskId), 'Task not exist');
+    this.completedTaskSet.add(taskId);
+  }
+}
+
 export class Employee {
   private status: EmployeeStatus = EmployeeStatus.Free;
-  private taskSet: Set<Task['id']> = new Set();
+  private taskHolder: TaskHolder = new TaskHolder();
   private currentTask?: Task['id'];
 
   id: Identity;
@@ -50,7 +87,7 @@ export class Employee {
 
   private clearCurrentTask() {
     this.currentTask = undefined;
-    if (this.taskSet.size) {
+    if (this.taskHolder.size) {
       this.changeStatus(EmployeeStatus.Rest);
     }
   }
@@ -59,9 +96,18 @@ export class Employee {
     return this.currentTask;
   }
 
+  getSpentTimeForTask(taskId: Task['id']): number {
+    return this.taskHolder.getTime(taskId);
+  }
+
+  reportProgressForTask(taskId: Task['id'], progressReport: ProgressReport): void {
+    this.assertTaskAttached(taskId);
+    this.taskHolder.addTime(taskId, Date.now() - progressReport.from.getTime());
+  }
+
   attachTask(taskId: Task['id']): void {
-    assert(!this.taskSet.has(taskId), 'Task already attached');
-    this.taskSet.add(taskId);
+    assert(!this.taskHolder.hasNotCompleted(taskId), 'Task already attached');
+    this.taskHolder.add(taskId);
     if (this.status === EmployeeStatus.Free) {
       this.changeStatus(EmployeeStatus.Rest);
     }
@@ -69,11 +115,11 @@ export class Employee {
 
   detachTask(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
-    this.taskSet.delete(taskId);
+    this.taskHolder.complete(taskId);
     if (this.isCurrentTask(taskId)) {
       this.clearCurrentTask();
     }
-    if (!this.taskSet.size) {
+    if (!this.taskHolder.size) {
       this.changeStatus(EmployeeStatus.Free);
     }
   }
@@ -96,6 +142,6 @@ export class Employee {
   }
 
   private assertTaskAttached(taskId: Task['id']): void {
-    assert(this.taskSet.has(taskId), 'Task not attached');
+    assert(this.taskHolder.hasNotCompleted(taskId), 'Task not attached');
   }
 }

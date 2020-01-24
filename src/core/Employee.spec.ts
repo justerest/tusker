@@ -9,4 +9,8 @@ describe('Employee', () => {
     employee = new Employee();
     task = new Task();
   });
+
+  it('should be created', () => {
+    expect(employee).toBeInstanceOf(Employee);
+  });
 });

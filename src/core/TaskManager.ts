@@ -1,5 +1,5 @@
 import { Employee } from './Employee';
-import { Task } from './Task';
+import { Task, ProgressReport } from './Task';
 import { assert } from 'src/utils/assert';
 import { EmployeeRepository } from './EmployeeRepository';
 import { TaskRepository } from './TaskRepository';
@@ -32,19 +32,14 @@ export class TaskManager {
     if (!task.isExecutor(employee.id)) {
       this.attachTaskToEmployee(employee, task);
     }
-    if (employee.getCurrentTask()) {
-      this.snoozeEmployeeCurrentTask(employee);
-    }
+    const prevTaskId = employee.getCurrentTask();
     employee.takeInWork(task.id);
+    if (prevTaskId) {
+      const prevTask = this.taskRepository.getById(prevTaskId);
+      this.snoozeTask(prevTask);
+      this.taskRepository.save(prevTask);
+    }
     task.takeInWork();
-  }
-
-  snoozeEmployeeCurrentTask(employee: Employee): void {
-    const taskId = employee.getCurrentTask();
-    assert(taskId, 'Employee has not task in work');
-    const task = this.taskRepository.getById(taskId);
-    this.snoozeTask(task);
-    this.taskRepository.save(task);
   }
 
   snoozeTask(task: Task): void {
@@ -65,5 +60,14 @@ export class TaskManager {
       this.employeeRepository.save(executor);
     }
     task.complete();
+  }
+
+  reportProgress(task: Task, progressReport: ProgressReport): void {
+    const employeeId = task.getExecutor();
+    assert(employeeId, 'Task has not executor');
+    const employee = this.employeeRepository.getById(employeeId);
+    employee.reportProgressForTask(task.id, progressReport);
+    task.reportProgress(progressReport);
+    this.employeeRepository.save(employee);
   }
 }
