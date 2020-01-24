@@ -20,6 +20,8 @@ export class Task {
 
   plannedTime!: number;
 
+  private inWorkSince: number = 0;
+
   constructor(id: Identity = 1) {
     this.id = id;
   }
@@ -48,6 +50,16 @@ export class Task {
     this.status = status;
   }
 
+  getSpentTime(): number {
+    return this.status === TaskStatus.InWork
+      ? this.spentTime + this.getSpentTimeIncrement()
+      : this.spentTime;
+  }
+
+  getProgress(): number {
+    return this.progress;
+  }
+
   getExecutors(): Set<Employee['id']> {
     return new Set(this.executors);
   }
@@ -60,36 +72,34 @@ export class Task {
     this.executors.add(employeeId);
   }
 
+  vacateExecutor(employeeId: Employee['id']): void {
+    this.spentTime += this.getSpentTimeIncrement();
+    this.inWorkSince = Date.now();
+    this.executors.delete(employeeId);
+  }
+
   takeInWork(): void {
     this.changeStatus(TaskStatus.InWork);
+    this.inWorkSince = Date.now();
   }
 
   complete(): void {
-    this.reportProgress(new ProgressReport(new Date(), 100));
     this.changeStatus(TaskStatus.Done);
+    this.progress = 100;
+    this.spentTime += this.getSpentTimeIncrement();
   }
 
   snooze(): void {
     this.changeStatus(TaskStatus.Snoozed);
+    this.spentTime += this.getSpentTimeIncrement();
   }
 
   reportProgress(progressReport: ProgressReport): void {
     assert(this.status === TaskStatus.InWork, 'Can not report progress not in work task');
-    this.setSpentTime(Date.now() - progressReport.from.getTime());
     this.progress = progressReport.progress;
   }
 
-  getSpentTime(): number {
-    return this.spentTime;
-  }
-
-  private setSpentTime(spentTime: number): void {
-    if (this.spentTime < spentTime) {
-      this.spentTime = spentTime;
-    }
-  }
-
-  getProgress(): number {
-    return this.progress;
+  private getSpentTimeIncrement() {
+    return (Date.now() - this.inWorkSince) * this.executors.size;
   }
 }
