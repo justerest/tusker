@@ -15,7 +15,7 @@ export class Task {
 
   id: Identity;
 
-  constructor(id: Identity = '') {
+  constructor(id: Identity = 1) {
     this.id = id;
   }
 
@@ -23,15 +23,35 @@ export class Task {
     return this.status;
   }
 
+  private changeStatus(status: TaskStatus): void {
+    assert(this.status !== status, 'Can not change status on same');
+    switch (status) {
+      case TaskStatus.Snoozed: {
+        assert(this.status !== TaskStatus.Planned, 'Can not snooze not Planned task');
+        assert(this.executorId, 'Can not snooze not assigned task');
+        break;
+      }
+      case TaskStatus.InWork: {
+        assert(this.executorId, 'Can not take in work not assigned task');
+        break;
+      }
+      case TaskStatus.Planned: {
+        assert(!this.executorId, 'Can not place assigned task');
+        break;
+      }
+    }
+    this.status = status;
+  }
+
   getExecutor(): Employee['id'] | undefined {
     return this.executorId;
   }
 
+  isExecutor(employeeId: Employee['id']) {
+    return Identity.equals(employeeId, this.executorId);
+  }
+
   assignExecutor(employeeId: Employee['id']): void {
-    assert(!this.isCurrentExecutor(employeeId));
-    if (this.executorId) {
-      this.vacateExecutor();
-    }
     this.executorId = employeeId;
   }
 
@@ -40,21 +60,14 @@ export class Task {
   }
 
   takeInWork(): void {
-    assert(this.executorId);
-    this.status = TaskStatus.InWork;
+    this.changeStatus(TaskStatus.InWork);
   }
 
   complete(): void {
-    assert(this.status !== TaskStatus.Done);
-    this.status = TaskStatus.Done;
+    this.changeStatus(TaskStatus.Done);
   }
 
   snooze(): void {
-    assert([TaskStatus.Done, TaskStatus.InWork].includes(this.status));
-    this.status = TaskStatus.Snoozed;
-  }
-
-  private isCurrentExecutor(employeeId: Identity) {
-    return !!this.executorId && Identity.equals(this.executorId, employeeId);
+    this.changeStatus(TaskStatus.Snoozed);
   }
 }

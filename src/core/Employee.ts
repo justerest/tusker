@@ -1,5 +1,5 @@
 import { Identity } from './common/Identity';
-import { Task, TaskStatus } from './Task';
+import { Task } from './Task';
 import { assert } from '../utils/assert';
 import { EventPublisher } from './common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
@@ -13,7 +13,8 @@ export enum EmployeeStatus {
 
 export class Employee {
   private status: EmployeeStatus = EmployeeStatus.Free;
-  private taskMap: Map<Task['id'], TaskStatus> = new Map();
+  private taskSet: Set<Task['id']> = new Set();
+  private currentTask?: Task['id'];
 
   id: Identity;
 
@@ -21,70 +22,80 @@ export class Employee {
     this.id = id;
   }
 
-  attachTask(task: Task): void {
-    assert(!this.taskMap.has(task.id));
-    task.assignExecutor(this.id);
-    this.taskMap.set(task.id, TaskStatus.Planned);
+  private changeStatus(status: EmployeeStatus): void {
+    assert(this.status !== status);
+    switch (status) {
+      case EmployeeStatus.Free: {
+        EventPublisher.instance.publish(new EmployeeFree(this));
+        break;
+      }
+      case EmployeeStatus.Rest: {
+        EventPublisher.instance.publish(new EmployeeRest(this));
+        break;
+      }
+    }
+    this.status = status;
+  }
+
+  isCurrentTask(taskId: Identity) {
+    return Identity.equals(taskId, this.currentTask);
+  }
+
+  private assignCurrentTask(taskId: Identity) {
+    this.currentTask = taskId;
+    if (this.status !== EmployeeStatus.InWork) {
+      this.changeStatus(EmployeeStatus.InWork);
+    }
+  }
+
+  private clearCurrentTask() {
+    this.currentTask = undefined;
+    if (this.taskSet.size) {
+      this.changeStatus(EmployeeStatus.Rest);
+    }
+  }
+
+  getCurrentTask(): Task['id'] | undefined {
+    return this.currentTask;
+  }
+
+  attachTask(taskId: Task['id']): void {
+    assert(!this.taskSet.has(taskId), 'Task already attached');
+    this.taskSet.add(taskId);
     if (this.status === EmployeeStatus.Free) {
-      this.rest();
+      this.changeStatus(EmployeeStatus.Rest);
     }
   }
 
-  detachTask(task: Task): void {
-    const executorId = task.getExecutor();
-    assert(this.taskMap.has(task.id));
-    assert(executorId);
-    assert(Identity.equals(executorId, this.id));
-    task.vacateExecutor();
-    this.taskMap.delete(task.id);
-    if (!this.taskMap.size) {
-      this.free();
+  detachTask(taskId: Task['id']): void {
+    this.assertTaskAttached(taskId);
+    this.taskSet.delete(taskId);
+    if (this.isCurrentTask(taskId)) {
+      this.clearCurrentTask();
+    }
+    if (!this.taskSet.size) {
+      this.changeStatus(EmployeeStatus.Free);
     }
   }
 
-  takeInWork(task: Task): void {
-    if (!this.taskMap.has(task.id)) {
-      this.attachTask(task);
-    }
-    task.takeInWork();
-    if (this.status === EmployeeStatus.InWork) {
-      this.taskMap.set(this.getCurrentTaskId(), TaskStatus.Snoozed);
-    } else {
-      this.status = EmployeeStatus.InWork;
-    }
+  takeInWork(taskId: Task['id']): void {
+    this.assertTaskAttached(taskId);
+    assert(!this.isCurrentTask(taskId), 'Task already in work');
+    this.assignCurrentTask(taskId);
   }
 
-  completeTask(task: Task): void {
-    assert(this.taskMap.has(task.id));
-    task.complete();
-    this.taskMap.delete(task.id);
-    if (!this.taskMap.size) {
-      this.free();
-    } else {
-      this.rest();
+  completeTask(taskId: Task['id']): void {
+    this.detachTask(taskId);
+  }
+
+  snoozeTask(taskId: Task['id']): void {
+    this.assertTaskAttached(taskId);
+    if (this.isCurrentTask(taskId)) {
+      this.clearCurrentTask();
     }
   }
 
-  snoozeTask(task: Task): void {
-    assert(this.taskMap.has(task.id));
-    task.snooze();
-    this.taskMap.set(task.id, TaskStatus.Snoozed);
-    this.rest();
-  }
-
-  private getCurrentTaskId(): Identity {
-    const res = [...this.taskMap.entries()].find(([_, status]) => status === TaskStatus.InWork);
-    assert(res);
-    return res[0];
-  }
-
-  private free() {
-    this.status = EmployeeStatus.Free;
-    EventPublisher.instance.publish(new EmployeeFree(this));
-  }
-
-  private rest(): void {
-    this.status = EmployeeStatus.Rest;
-    EventPublisher.instance.publish(new EmployeeRest(this));
+  private assertTaskAttached(taskId: Task['id']): void {
+    assert(this.taskSet.has(taskId), 'Task not attached');
   }
 }
