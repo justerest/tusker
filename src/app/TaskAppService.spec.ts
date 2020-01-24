@@ -2,7 +2,7 @@ import { TaskAppService } from './TaskAppService';
 import { InMemoryTaskRepository } from './repositories/InMemoryTaskRepository';
 import { InMemoryEmployeeRepository } from './repositories/InMemoryEmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
-import { ProgressReport } from 'src/core/Task';
+import { ProgressReport } from 'src/core/ProgressReport';
 import { Employee } from 'src/core/Employee';
 
 const HOUR_IN_MILLISECONDS = 60 * 60 * 1000;

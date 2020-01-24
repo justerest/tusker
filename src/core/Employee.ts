@@ -1,5 +1,6 @@
 import { Identity } from './common/Identity';
-import { Task, ProgressReport } from './Task';
+import { Task } from './Task';
+import { ProgressReport } from './ProgressReport';
 import { assert } from '../utils/assert';
 import { EventPublisher } from './common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';

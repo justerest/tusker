@@ -1,6 +1,7 @@
 import { assert } from '../utils/assert';
 import { Identity } from './common/Identity';
 import { Employee } from './Employee';
+import { ProgressReport } from './ProgressReport';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -9,19 +10,9 @@ export enum TaskStatus {
   Done = 'Done',
 }
 
-export abstract class Report {
-  abstract from: Date;
-}
-
-export class ProgressReport extends Report {
-  constructor(public from: Date, public progress: number) {
-    super();
-  }
-}
-
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
-  private executorId?: Employee['id'];
+  private executors: Set<Employee['id']> = new Set();
   private progress = 0;
   private spentTime = 0;
 
@@ -42,35 +33,31 @@ export class Task {
     switch (status) {
       case TaskStatus.Snoozed: {
         assert(this.status !== TaskStatus.Planned, 'Can not snooze not Planned task');
-        assert(this.executorId, 'Can not snooze not assigned task');
+        assert(this.executors, 'Can not snooze not assigned task');
         break;
       }
       case TaskStatus.InWork: {
-        assert(this.executorId, 'Can not take in work not assigned task');
+        assert(this.executors, 'Can not take in work not assigned task');
         break;
       }
       case TaskStatus.Planned: {
-        assert(!this.executorId, 'Can not place assigned task');
+        assert(!this.executors, 'Can not place assigned task');
         break;
       }
     }
     this.status = status;
   }
 
-  getExecutor(): Employee['id'] | undefined {
-    return this.executorId;
+  getExecutors(): Set<Employee['id']> {
+    return new Set(this.executors);
   }
 
   isExecutor(employeeId: Employee['id']) {
-    return Identity.equals(employeeId, this.executorId);
+    return this.executors.has(employeeId);
   }
 
   assignExecutor(employeeId: Employee['id']): void {
-    this.executorId = employeeId;
-  }
-
-  vacateExecutor(): void {
-    this.executorId = undefined;
+    this.executors.add(employeeId);
   }
 
   takeInWork(): void {
@@ -91,8 +78,6 @@ export class Task {
     this.setSpentTime(Date.now() - progressReport.from.getTime());
     this.progress = progressReport.progress;
   }
-
-  reportDeadTime(): void {}
 
   getSpentTime(): number {
     return this.spentTime;

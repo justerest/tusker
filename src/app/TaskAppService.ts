@@ -1,5 +1,6 @@
 import { TaskRepository } from 'src/core/TaskRepository';
-import { Task, ProgressReport } from 'src/core/Task';
+import { Task } from 'src/core/Task';
+import { ProgressReport } from 'src/core/ProgressReport';
 import { Employee } from 'src/core/Employee';
 import { EmployeeRepository } from 'src/core/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
