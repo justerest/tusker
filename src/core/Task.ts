@@ -10,44 +10,53 @@ export enum TaskStatus {
   Done = 'Done',
 }
 
-interface SpentTimeCounter {
-  spentTime: number;
-  inWorkSince: number;
-  active: boolean;
-}
+class Tracker {
+  private spentTime: number = 0;
+  private inWorkSince: number = 0;
+  private isTrackingOn: boolean = false;
 
-class EmployeeTimeCounter {
-  private map: Map<Employee['id'], SpentTimeCounter> = new Map();
-
-  add(employeeId: Employee['id']): void {
-    assert(!this.map.has(employeeId), 'Employee already exist');
-    this.map.set(employeeId, { spentTime: 0, active: false, inWorkSince: 0 });
+  startTracking(): void {
+    assert(!this.isTrackingOn, 'Tracking already started');
+    this.isTrackingOn = true;
+    this.inWorkSince = Date.now();
   }
 
-  activate(employeeId: Employee['id']): void {
-    const params = this.get(employeeId);
-    params.active = true;
-    params.inWorkSince = Date.now();
+  stopTracking(): void {
+    assert(this.isTrackingOn, 'Tracking not started yet');
+    this.isTrackingOn = false;
+    this.spentTime += this.getSpentTimeIncrement();
   }
 
-  deactivate(employeeId: Employee['id']): void {
-    const params = this.get(employeeId);
-    if (params.active) {
-      params.active = false;
-      params.spentTime += Date.now() - params.inWorkSince;
-      params.inWorkSince = 0;
-    }
+  private getSpentTimeIncrement() {
+    return Date.now() - this.inWorkSince;
   }
 
   getSpentTime(): number {
-    return [...this.map.values()].reduce(
-      (res, { spentTime, active, inWorkSince }) =>
-        res + spentTime + (active ? Date.now() - inWorkSince : 0),
-      0,
-    );
+    return this.spentTime + (this.isTrackingOn ? this.getSpentTimeIncrement() : 0);
+  }
+}
+
+class ExecutorTracker {
+  private map: Map<Employee['id'], Tracker> = new Map();
+
+  addExecutor(employeeId: Employee['id']): void {
+    assert(!this.map.has(employeeId), 'Employee already exist');
+    this.map.set(employeeId, new Tracker());
   }
 
-  private get(employeeId: Identity): SpentTimeCounter {
+  startTracking(employeeId: Employee['id']): void {
+    this.get(employeeId).startTracking();
+  }
+
+  stopTracking(employeeId: Employee['id']): void {
+    this.get(employeeId).stopTracking();
+  }
+
+  getSpentTime(): number {
+    return [...this.map.values()].reduce((res, el) => res + el.getSpentTime(), 0);
+  }
+
+  private get(employeeId: Identity): Tracker {
     const params = this.map.get(employeeId);
     assert(params, 'Employee not exist');
     return params;
@@ -56,7 +65,7 @@ class EmployeeTimeCounter {
 
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
-  private employeeTimeCounter: EmployeeTimeCounter = new EmployeeTimeCounter();
+  private executorTracker: ExecutorTracker = new ExecutorTracker();
   private executorId?: Employee['id'];
   private progress = 0;
 
@@ -91,7 +100,7 @@ export class Task {
   }
 
   getSpentTime(): number {
-    return this.employeeTimeCounter.getSpentTime();
+    return this.executorTracker.getSpentTime();
   }
 
   getProgress(): number {
@@ -108,32 +117,32 @@ export class Task {
 
   assignExecutor(employeeId: Employee['id']): void {
     this.executorId = employeeId;
-    this.employeeTimeCounter.add(employeeId);
+    this.executorTracker.addExecutor(employeeId);
   }
 
   vacateExecutor(): void {
     assert(this.executorId, 'Executor not exist');
-    this.employeeTimeCounter.deactivate(this.executorId);
+    this.executorTracker.stopTracking(this.executorId);
     this.executorId = undefined;
     this.changeStatus(TaskStatus.Planned);
   }
 
   takeInWork(): void {
     assert(this.executorId, 'Executor not exist');
-    this.employeeTimeCounter.activate(this.executorId);
+    this.executorTracker.startTracking(this.executorId);
     this.changeStatus(TaskStatus.InWork);
   }
 
   snooze(): void {
     assert(this.executorId, 'Executor not exist');
-    this.employeeTimeCounter.deactivate(this.executorId);
+    this.executorTracker.stopTracking(this.executorId);
     this.changeStatus(TaskStatus.Snoozed);
   }
 
   complete(): void {
     this.progress = 100;
     if (this.executorId) {
-      this.employeeTimeCounter.deactivate(this.executorId);
+      this.executorTracker.stopTracking(this.executorId);
     }
     this.changeStatus(TaskStatus.Done);
   }
