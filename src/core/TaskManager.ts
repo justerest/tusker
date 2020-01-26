@@ -34,7 +34,7 @@ export class TaskManager {
       this.attachTaskToEmployee(employee, task);
     }
     const prevTaskId = employee.getCurrentTask();
-    employee.takeInWork(task.id);
+    employee.takeTaskInWork(task.id);
     if (prevTaskId) {
       const prevTask = this.taskRepository.getById(prevTaskId);
       this.snoozeTask(prevTask);

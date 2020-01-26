@@ -11,7 +11,7 @@ describe('EmployeeRest', () => {
       const employee = new Employee();
       employee.attachTask(task);
       employee.attachTask(task2);
-      employee.takeInWork(task);
+      employee.takeTaskInWork(task);
       const listener = createListener();
       employee.completeTask(task);
       listener.assertEmitted();
@@ -29,7 +29,7 @@ describe('EmployeeRest', () => {
       const task = new Task();
       const employee = new Employee();
       employee.attachTask(task.id);
-      employee.takeInWork(task.id);
+      employee.takeTaskInWork(task.id);
       const listener = createListener();
       employee.snoozeTask(task.id);
       listener.assertEmitted();

@@ -79,20 +79,6 @@ export class Employee {
     return Identity.equals(taskId, this.currentTask);
   }
 
-  private assignCurrentTask(taskId: Identity) {
-    this.currentTask = taskId;
-    if (this.status !== EmployeeStatus.InWork) {
-      this.changeStatus(EmployeeStatus.InWork);
-    }
-  }
-
-  private clearCurrentTask() {
-    this.currentTask = undefined;
-    if (this.taskHolder.size) {
-      this.changeStatus(EmployeeStatus.Rest);
-    }
-  }
-
   getCurrentTask(): Task['id'] | undefined {
     return this.currentTask;
   }
@@ -125,10 +111,24 @@ export class Employee {
     }
   }
 
-  takeInWork(taskId: Task['id']): void {
+  private clearCurrentTask() {
+    this.currentTask = undefined;
+    if (this.taskHolder.size) {
+      this.changeStatus(EmployeeStatus.Rest);
+    }
+  }
+
+  takeTaskInWork(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
     assert(!this.isCurrentTask(taskId), 'Task already in work');
     this.assignCurrentTask(taskId);
+  }
+
+  private assignCurrentTask(taskId: Identity) {
+    this.currentTask = taskId;
+    if (this.status !== EmployeeStatus.InWork) {
+      this.changeStatus(EmployeeStatus.InWork);
+    }
   }
 
   completeTask(taskId: Task['id']): void {
