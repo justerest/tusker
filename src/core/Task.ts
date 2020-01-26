@@ -106,7 +106,7 @@ export class Task {
     return this.progress;
   }
 
-  getExecutor(): Employee['id'] | undefined {
+  getExecutorId(): Employee['id'] | undefined {
     return this.executorId;
   }
 

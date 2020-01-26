@@ -31,7 +31,7 @@ describe('EmployeeRest', () => {
       employee.attachTask(task.id);
       employee.takeTaskInWork(task.id);
       const listener = createListener();
-      employee.snoozeTask(task.id);
+      employee.snoozeCurrentTask();
       listener.assertEmitted();
     });
   });

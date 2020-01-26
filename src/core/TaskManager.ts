@@ -11,7 +11,7 @@ export class TaskManager {
   ) {}
 
   attachTaskToEmployee(employee: Employee, task: Task): void {
-    if (task.getExecutor()) {
+    if (task.getExecutorId()) {
       this.detachTask(task);
     }
     task.assignExecutor(employee.id);
@@ -19,7 +19,7 @@ export class TaskManager {
   }
 
   detachTask(task: Task): void {
-    const executorId = task.getExecutor();
+    const executorId = task.getExecutorId();
     assert(executorId, 'Task not attached');
     const executor = this.employeeRepository.getById(executorId);
     executor.detachTask(task.id);
@@ -32,7 +32,7 @@ export class TaskManager {
     if (!task.isExecutor(employee.id)) {
       this.attachTaskToEmployee(employee, task);
     }
-    const prevTaskId = employee.getCurrentTask();
+    const prevTaskId = employee.getCurrentTaskId();
     employee.takeTaskInWork(task.id);
     if (prevTaskId) {
       const prevTask = this.taskRepository.getById(prevTaskId);
@@ -43,17 +43,19 @@ export class TaskManager {
   }
 
   snoozeTask(task: Task): void {
-    const executorId = task.getExecutor();
+    const executorId = task.getExecutorId();
     if (executorId) {
       const executor = this.employeeRepository.getById(executorId);
-      executor.snoozeTask(task.id);
-      this.employeeRepository.save(executor);
+      if (executor.getCurrentTaskId()) {
+        executor.snoozeCurrentTask();
+        this.employeeRepository.save(executor);
+      }
     }
     task.snooze();
   }
 
   completeTask(task: Task): void {
-    const executorId = task.getExecutor();
+    const executorId = task.getExecutorId();
     if (executorId) {
       const executor = this.employeeRepository.getById(executorId);
       executor.completeTask(task.id);

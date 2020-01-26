@@ -31,17 +31,6 @@ class TaskHolder {
     this.completedTaskSet.delete(taskId);
   }
 
-  addTime(taskId: Task['id'], time: number): void {
-    const spentTime = this.getTime(taskId);
-    this.map.set(taskId, spentTime + time);
-  }
-
-  getTime(taskId: Task['id']): number {
-    const spentTime = this.map.get(taskId);
-    assert(spentTime !== undefined, 'Task not exist');
-    return spentTime;
-  }
-
   complete(taskId: Task['id']): void {
     assert(this.hasNotCompleted(taskId), 'Task not exist');
     this.completedTaskSet.add(taskId);
@@ -51,7 +40,7 @@ class TaskHolder {
 export class Employee {
   private status: EmployeeStatus = EmployeeStatus.Free;
   private taskHolder: TaskHolder = new TaskHolder();
-  private currentTask?: Task['id'];
+  private currentTaskId?: Task['id'];
 
   id: Identity;
 
@@ -75,15 +64,11 @@ export class Employee {
   }
 
   isCurrentTask(taskId: Identity) {
-    return Identity.equals(taskId, this.currentTask);
+    return Identity.equals(taskId, this.currentTaskId);
   }
 
-  getCurrentTask(): Task['id'] | undefined {
-    return this.currentTask;
-  }
-
-  getSpentTimeForTask(taskId: Task['id']): number {
-    return this.taskHolder.getTime(taskId);
+  getCurrentTaskId(): Task['id'] | undefined {
+    return this.currentTaskId;
   }
 
   attachTask(taskId: Task['id']): void {
@@ -105,8 +90,12 @@ export class Employee {
     }
   }
 
+  private assertTaskAttached(taskId: Task['id']): void {
+    assert(this.taskHolder.hasNotCompleted(taskId), 'Task not attached');
+  }
+
   private clearCurrentTask() {
-    this.currentTask = undefined;
+    this.currentTaskId = undefined;
     if (this.taskHolder.size) {
       this.changeStatus(EmployeeStatus.Rest);
     }
@@ -119,24 +108,18 @@ export class Employee {
   }
 
   private assignCurrentTask(taskId: Identity) {
-    this.currentTask = taskId;
+    this.currentTaskId = taskId;
     if (this.status !== EmployeeStatus.InWork) {
       this.changeStatus(EmployeeStatus.InWork);
     }
   }
 
+  snoozeCurrentTask(): void {
+    assert(this.currentTaskId, 'No current task');
+    this.clearCurrentTask();
+  }
+
   completeTask(taskId: Task['id']): void {
     this.detachTask(taskId);
-  }
-
-  snoozeTask(taskId: Task['id']): void {
-    this.assertTaskAttached(taskId);
-    if (this.isCurrentTask(taskId)) {
-      this.clearCurrentTask();
-    }
-  }
-
-  private assertTaskAttached(taskId: Task['id']): void {
-    assert(this.taskHolder.hasNotCompleted(taskId), 'Task not attached');
   }
 }

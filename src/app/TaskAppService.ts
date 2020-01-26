@@ -42,9 +42,4 @@ export class TaskAppService {
   getTask(taskId: Task['id']): Task {
     return this.taskRepository.getById(taskId);
   }
-
-  getEmployeeSpentTimeForTask(employeeId: Employee['id'], taskId: Task['id']): number {
-    const employee = this.employeeRepository.getById(employeeId);
-    return employee.getSpentTimeForTask(taskId);
-  }
 }
