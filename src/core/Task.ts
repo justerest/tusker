@@ -1,7 +1,6 @@
 import { assert } from '../utils/assert';
 import { Identity } from './common/Identity';
 import { Employee } from './Employee';
-import { ProgressReport } from './ProgressReport';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -145,10 +144,5 @@ export class Task {
       this.executorTracker.stopTracking(this.executorId);
     }
     this.changeStatus(TaskStatus.Done);
-  }
-
-  reportProgress(progressReport: ProgressReport): void {
-    assert(this.status === TaskStatus.InWork, 'Can not report progress not in work task');
-    this.progress = progressReport.progress;
   }
 }

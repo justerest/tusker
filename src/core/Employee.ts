@@ -1,6 +1,5 @@
 import { Identity } from './common/Identity';
 import { Task } from './Task';
-import { ProgressReport } from './ProgressReport';
 import { assert } from '../utils/assert';
 import { EventPublisher } from './common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
@@ -85,11 +84,6 @@ export class Employee {
 
   getSpentTimeForTask(taskId: Task['id']): number {
     return this.taskHolder.getTime(taskId);
-  }
-
-  reportProgressForTask(taskId: Task['id'], progressReport: ProgressReport): void {
-    this.assertTaskAttached(taskId);
-    this.taskHolder.addTime(taskId, Date.now() - progressReport.from.getTime());
   }
 
   attachTask(taskId: Task['id']): void {

@@ -1,6 +1,5 @@
 import { Employee } from './Employee';
 import { Task } from './Task';
-import { ProgressReport } from './ProgressReport';
 import { assert } from 'src/utils/assert';
 import { EmployeeRepository } from './EmployeeRepository';
 import { TaskRepository } from './TaskRepository';
@@ -61,14 +60,5 @@ export class TaskManager {
       this.employeeRepository.save(executor);
     }
     task.complete();
-  }
-
-  reportProgress(task: Task, progressReport: ProgressReport): void {
-    const employeeId = task.getExecutor();
-    assert(employeeId, 'Task has not executor');
-    const employee = this.employeeRepository.getById(employeeId);
-    employee.reportProgressForTask(task.id, progressReport);
-    task.reportProgress(progressReport);
-    this.employeeRepository.save(employee);
   }
 }

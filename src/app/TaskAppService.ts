@@ -1,6 +1,5 @@
 import { TaskRepository } from 'src/core/TaskRepository';
 import { Task } from 'src/core/Task';
-import { ProgressReport } from 'src/core/ProgressReport';
 import { Employee } from 'src/core/Employee';
 import { EmployeeRepository } from 'src/core/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
@@ -32,12 +31,6 @@ export class TaskAppService {
     this.taskManager.takeTaskInWorkBy(employee, task);
     this.taskRepository.save(task);
     this.employeeRepository.save(employee);
-  }
-
-  reportTaskProgress(taskId: Task['id'], progressReport: ProgressReport): void {
-    const task = this.taskRepository.getById(taskId);
-    this.taskManager.reportProgress(task, progressReport);
-    this.taskRepository.save(task);
   }
 
   completeTask(taskId: Task['id']): void {
