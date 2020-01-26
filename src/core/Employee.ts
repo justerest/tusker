@@ -39,10 +39,6 @@ export class Employee {
     this.status = status;
   }
 
-  isInWork(): boolean {
-    return this.status === EmployeeStatus.InWork;
-  }
-
   getCurrentTaskId(): Task['id'] | undefined {
     return this.currentTaskId;
   }

@@ -1,72 +1,19 @@
 import { assert } from '../utils/assert';
 import { Identity } from './common/Identity';
 import { Employee } from './Employee';
+import { ExecutorTracker } from './ExecutorTracker';
 
 export enum TaskStatus {
   Planned = 'Planned',
   InWork = 'InWork',
   Snoozed = 'Snoozed',
-  Done = 'Done',
-}
-
-class Tracker {
-  private spentTime: number = 0;
-  private inWorkSince: number = 0;
-  private isTrackingOn: boolean = false;
-
-  startTracking(): void {
-    assert(!this.isTrackingOn, 'Tracking already started');
-    this.isTrackingOn = true;
-    this.inWorkSince = Date.now();
-  }
-
-  stopTracking(): void {
-    assert(this.isTrackingOn, 'Tracking not started yet');
-    this.isTrackingOn = false;
-    this.spentTime += this.getSpentTimeIncrement();
-  }
-
-  private getSpentTimeIncrement() {
-    return Date.now() - this.inWorkSince;
-  }
-
-  getSpentTime(): number {
-    return this.spentTime + (this.isTrackingOn ? this.getSpentTimeIncrement() : 0);
-  }
-}
-
-class ExecutorTracker {
-  private map: Map<Employee['id'], Tracker> = new Map();
-
-  addExecutor(employeeId: Employee['id']): void {
-    assert(!this.map.has(employeeId), 'Employee already exist');
-    this.map.set(employeeId, new Tracker());
-  }
-
-  startTracking(employeeId: Employee['id']): void {
-    this.get(employeeId).startTracking();
-  }
-
-  stopTracking(employeeId: Employee['id']): void {
-    this.get(employeeId).stopTracking();
-  }
-
-  getSpentTime(): number {
-    return [...this.map.values()].reduce((res, el) => res + el.getSpentTime(), 0);
-  }
-
-  private get(employeeId: Identity): Tracker {
-    const params = this.map.get(employeeId);
-    assert(params, 'Employee not exist');
-    return params;
-  }
+  Completed = 'Completed',
 }
 
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
   private executorTracker: ExecutorTracker = new ExecutorTracker();
   private executorId?: Employee['id'];
-  private progress = 0;
 
   id: Identity;
 
@@ -91,7 +38,7 @@ export class Task {
         break;
       }
       case TaskStatus.Planned: {
-        assert(!this.executorId, 'Can not place assigned task');
+        assert(!this.executorId, 'Can not plane assigned task');
         break;
       }
     }
@@ -102,28 +49,34 @@ export class Task {
     return this.executorTracker.getSpentTime();
   }
 
-  getProgress(): number {
-    return this.progress;
+  getSpentTimeFor(employeeId: Employee['id']): number {
+    return this.executorTracker.getSpentTimeFor(employeeId);
   }
 
   getExecutorId(): Employee['id'] | undefined {
     return this.executorId;
   }
 
-  isExecutor(employeeId: Employee['id']) {
-    return Identity.equals(employeeId, this.executorId);
+  getAllExecutorIds(): Employee['id'][] {
+    return this.executorTracker.getAllExecutorIds();
   }
 
   assignExecutor(employeeId: Employee['id']): void {
+    assert(!this.executorId, 'Can not assign second executor on task');
     this.executorId = employeeId;
     this.executorTracker.addExecutor(employeeId);
   }
 
   vacateExecutor(): void {
+    assert(this.status !== TaskStatus.Completed, 'Can not vacate executor of completed task');
     assert(this.executorId, 'Executor not exist');
-    this.executorTracker.stopTracking(this.executorId);
+    if (this.status === TaskStatus.InWork) {
+      this.executorTracker.stopTracking(this.executorId);
+    }
     this.executorId = undefined;
-    this.changeStatus(TaskStatus.Planned);
+    if (this.status !== TaskStatus.Planned) {
+      this.changeStatus(TaskStatus.Planned);
+    }
   }
 
   takeInWork(): void {
@@ -139,10 +92,9 @@ export class Task {
   }
 
   complete(): void {
-    this.progress = 100;
     if (this.executorId) {
       this.executorTracker.stopTracking(this.executorId);
     }
-    this.changeStatus(TaskStatus.Done);
+    this.changeStatus(TaskStatus.Completed);
   }
 }

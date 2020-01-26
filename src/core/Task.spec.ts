@@ -4,7 +4,6 @@ const HOUR_IN_MILLISECONDS = 60 * 60 * 1000;
 
 describe('Task', () => {
   let task: Task;
-  const employeeId = 1;
 
   beforeEach(() => {
     task = new Task();
@@ -22,14 +21,18 @@ describe('Task', () => {
     expect(task.getStatus()).toBe(TaskStatus.Planned);
   });
 
-  it('should change status to InProgress on start', () => {
-    task.assignExecutor(employeeId);
-    task.takeInWork();
-    expect(task.getStatus()).toBe(TaskStatus.InWork);
+  describe(Task.prototype.takeInWork.name, () => {
+    it('should change status to InProgress', () => {
+      const employeeId = 1;
+      task.assignExecutor(employeeId);
+      task.takeInWork();
+      expect(task.getStatus()).toBe(TaskStatus.InWork);
+    });
   });
 
-  describe('+getSpentTime()', () => {
+  describe(Task.prototype.getSpentTime.name, () => {
     it('should sum time from work to complete', () => {
+      const employeeId = 1;
       task.assignExecutor(employeeId);
       task.takeInWork();
       spentHour();
@@ -38,6 +41,7 @@ describe('Task', () => {
     });
 
     it('should sum time from work to complete with breaks', () => {
+      const employeeId = 1;
       task.assignExecutor(employeeId);
       task.takeInWork();
       spentHour();
@@ -51,6 +55,7 @@ describe('Task', () => {
     });
 
     it('should calc spent time', () => {
+      const employeeId = 1;
       task.assignExecutor(employeeId);
       task.takeInWork();
       spentHour();
@@ -58,6 +63,7 @@ describe('Task', () => {
     });
 
     it('should calc spent time for two employees', () => {
+      const employeeId = 1;
       const secondEmployeeId = 2;
       task.assignExecutor(employeeId);
       task.takeInWork();
@@ -68,6 +74,27 @@ describe('Task', () => {
       spentHour();
       expect(task.getSpentTime()).toBeGreaterThanOrEqual(2 * HOUR_IN_MILLISECONDS);
     });
+  });
+
+  it('should hold all executors spent time', () => {
+    const employeeId = 1;
+    const employeeId2 = 2;
+    const employeeId3 = 3;
+    task.assignExecutor(employeeId);
+    task.vacateExecutor();
+    task.assignExecutor(employeeId2);
+    expect(task.getSpentTimeFor(employeeId)).toEqual(0);
+    expect(task.getSpentTimeFor(employeeId2)).toEqual(0);
+    expect(() => task.getSpentTimeFor(employeeId3)).toThrow();
+  });
+
+  it('should hold all executors', () => {
+    const employeeId = 1;
+    const employeeId2 = 2;
+    task.assignExecutor(employeeId);
+    task.vacateExecutor();
+    task.assignExecutor(employeeId2);
+    expect(task.getAllExecutorIds()).toEqual([employeeId, employeeId2]);
   });
 });
 

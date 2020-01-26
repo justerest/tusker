@@ -13,12 +13,7 @@ describe('TaskAppService', () => {
     taskAppService = new TaskAppService(taskRepository, employeeRepository, taskManager);
   });
 
-  it('progress for completed task should be 100%', () => {
-    const taskId = taskAppService.createTask();
-    const employeeId = 1;
-    taskAppService.attachTaskToEmployee(employeeId, taskId);
-    taskAppService.takeTaskInWorkBy(employeeId, taskId);
-    taskAppService.completeTask(taskId);
-    expect(taskAppService.getTask(taskId).getProgress()).toBe(100);
+  it('should be created', () => {
+    expect(taskAppService).toBeInstanceOf(TaskAppService);
   });
 });
