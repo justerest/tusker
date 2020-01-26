@@ -3,6 +3,7 @@ import { Task } from './Task';
 import { assert } from 'src/utils/assert';
 import { EmployeeRepository } from './EmployeeRepository';
 import { TaskRepository } from './TaskRepository';
+import { Identity } from './common/Identity';
 
 export class TaskManager {
   constructor(
@@ -28,7 +29,10 @@ export class TaskManager {
   }
 
   takeTaskInWorkBy(employee: Employee, task: Task): void {
-    assert(!employee.isCurrentTask(task.id), 'Task already in work of this employee');
+    assert(
+      !Identity.equals(task.id, employee.getCurrentTaskId()),
+      'Task already in work of this employee',
+    );
     if (!task.isExecutor(employee.id)) {
       this.attachTaskToEmployee(employee, task);
     }
@@ -46,7 +50,7 @@ export class TaskManager {
     const executorId = task.getExecutorId();
     if (executorId) {
       const executor = this.employeeRepository.getById(executorId);
-      if (executor.getCurrentTaskId()) {
+      if (executor.isInWork()) {
         executor.snoozeCurrentTask();
         this.employeeRepository.save(executor);
       }

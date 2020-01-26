@@ -34,6 +34,18 @@ describe('EmployeeFree', () => {
       employee.detachTask(task);
       listener.assertEmitted();
     });
+
+    it('if user detach task and user have no another uncompleted tasks', () => {
+      const listener = createListener();
+      const taskId = 1;
+      const taskId2 = 2;
+      const employee = new Employee();
+      employee.attachTask(taskId);
+      employee.attachTask(taskId2);
+      employee.completeTask(taskId);
+      employee.detachTask(taskId2);
+      listener.assertEmitted();
+    });
   });
 
   describe('should not be emitted', () => {

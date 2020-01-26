@@ -11,35 +11,11 @@ export enum EmployeeStatus {
   Rest = 'Rest',
 }
 
-class TaskHolder {
-  private map: Map<Task['id'], number> = new Map();
-  private completedTaskSet: Set<Task['id']> = new Set();
-
-  get size(): number {
-    return this.map.size - this.completedTaskSet.size;
-  }
-
-  constructor() {}
-
-  hasNotCompleted(taskId: Task['id']): boolean {
-    return this.map.has(taskId) && !this.completedTaskSet.has(taskId);
-  }
-
-  add(taskId: Task['id']): void {
-    assert(!this.hasNotCompleted(taskId), 'Task already exist');
-    this.map.set(taskId, 0);
-    this.completedTaskSet.delete(taskId);
-  }
-
-  complete(taskId: Task['id']): void {
-    assert(this.hasNotCompleted(taskId), 'Task not exist');
-    this.completedTaskSet.add(taskId);
-  }
-}
-
 export class Employee {
   private status: EmployeeStatus = EmployeeStatus.Free;
-  private taskHolder: TaskHolder = new TaskHolder();
+
+  private attachedTaskSet: Set<Task['id']> = new Set();
+  private uncompletedTaskSet: Set<Task['id']> = new Set();
   private currentTaskId?: Task['id'];
 
   id: Identity;
@@ -63,17 +39,22 @@ export class Employee {
     this.status = status;
   }
 
-  isCurrentTask(taskId: Identity) {
-    return Identity.equals(taskId, this.currentTaskId);
+  isInWork(): boolean {
+    return this.status === EmployeeStatus.InWork;
   }
 
   getCurrentTaskId(): Task['id'] | undefined {
     return this.currentTaskId;
   }
 
+  getAttachedTaskIds(): Task['id'][] {
+    return [...this.attachedTaskSet.values()];
+  }
+
   attachTask(taskId: Task['id']): void {
-    assert(!this.taskHolder.hasNotCompleted(taskId), 'Task already attached');
-    this.taskHolder.add(taskId);
+    assert(!this.attachedTaskSet.has(taskId), 'Task already attached');
+    this.attachedTaskSet.add(taskId);
+    this.uncompletedTaskSet.add(taskId);
     if (this.status === EmployeeStatus.Free) {
       this.changeStatus(EmployeeStatus.Rest);
     }
@@ -81,29 +62,38 @@ export class Employee {
 
   detachTask(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
-    this.taskHolder.complete(taskId);
-    if (this.isCurrentTask(taskId)) {
+    this.attachedTaskSet.delete(taskId);
+    this.uncompletedTaskSet.delete(taskId);
+    this.clearCurrentTaskIfNeeded(taskId);
+  }
+
+  private assertTaskAttached(taskId: Task['id']): void {
+    assert(this.attachedTaskSet.has(taskId), 'Task not attached');
+  }
+
+  private clearCurrentTaskIfNeeded(taskId: Identity): void {
+    if (this.isCurrentTaskId(taskId)) {
       this.clearCurrentTask();
     }
-    if (!this.taskHolder.size) {
+    if (!this.uncompletedTaskSet.size) {
       this.changeStatus(EmployeeStatus.Free);
     }
   }
 
-  private assertTaskAttached(taskId: Task['id']): void {
-    assert(this.taskHolder.hasNotCompleted(taskId), 'Task not attached');
+  private isCurrentTaskId(taskId: Identity) {
+    return Identity.equals(taskId, this.currentTaskId);
   }
 
   private clearCurrentTask() {
     this.currentTaskId = undefined;
-    if (this.taskHolder.size) {
+    if (this.uncompletedTaskSet.size) {
       this.changeStatus(EmployeeStatus.Rest);
     }
   }
 
   takeTaskInWork(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
-    assert(!this.isCurrentTask(taskId), 'Task already in work');
+    assert(!this.isCurrentTaskId(taskId), 'Task already in work');
     this.assignCurrentTask(taskId);
   }
 
@@ -120,6 +110,8 @@ export class Employee {
   }
 
   completeTask(taskId: Task['id']): void {
-    this.detachTask(taskId);
+    this.assertTaskAttached(taskId);
+    this.uncompletedTaskSet.delete(taskId);
+    this.clearCurrentTaskIfNeeded(taskId);
   }
 }
