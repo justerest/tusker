@@ -20,7 +20,9 @@ export class Employee {
 
   id: Identity;
 
-  constructor(id: Identity = 1) {
+  name: string = '';
+
+  constructor(id: Identity = Math.random()) {
     this.id = id;
   }
 

@@ -18,7 +18,9 @@ export class Task {
 
   id: Identity;
 
-  constructor(id: Identity = 1) {
+  title: string = '';
+
+  constructor(id: Identity = Math.random()) {
     this.id = id;
   }
 

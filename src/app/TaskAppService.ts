@@ -11,8 +11,9 @@ export class TaskAppService {
     private taskManager: TaskManager,
   ) {}
 
-  createTask(): Task['id'] {
+  createTask(title: string): Task['id'] {
     const task = new Task();
+    task.title = title;
     this.taskRepository.save(task);
     return task.id;
   }
