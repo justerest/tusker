@@ -1,4 +1,4 @@
-import { EventPublisher } from './common/EventPublisher';
+import { EventPublisher } from '../common/EventPublisher';
 import { EmployeeRest } from './EmployeeRest';
 import { Employee } from './Employee';
 

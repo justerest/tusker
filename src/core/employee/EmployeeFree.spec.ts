@@ -1,6 +1,6 @@
-import { EventPublisher } from './common/EventPublisher';
+import { EventPublisher } from '../common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
-import { Task } from './Task';
+import { Task } from '../task/Task';
 import { Employee } from './Employee';
 
 describe('EmployeeFree', () => {

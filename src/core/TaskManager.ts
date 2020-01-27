@@ -1,8 +1,8 @@
-import { Employee } from './Employee';
-import { Task } from './Task';
+import { Employee } from './employee/Employee';
+import { Task } from './task/Task';
 import { assert } from 'src/utils/assert';
-import { EmployeeRepository } from './EmployeeRepository';
-import { TaskRepository } from './TaskRepository';
+import { EmployeeRepository } from './employee/EmployeeRepository';
+import { TaskRepository } from './task/TaskRepository';
 import { Identity } from './common/Identity';
 
 export class TaskManager {

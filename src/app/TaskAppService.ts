@@ -1,7 +1,7 @@
-import { TaskRepository } from 'src/core/TaskRepository';
-import { Task } from 'src/core/Task';
-import { Employee } from 'src/core/Employee';
-import { EmployeeRepository } from 'src/core/EmployeeRepository';
+import { TaskRepository } from 'src/core/task/TaskRepository';
+import { Task } from 'src/core/task/Task';
+import { Employee } from 'src/core/employee/Employee';
+import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
 
 export class TaskAppService {

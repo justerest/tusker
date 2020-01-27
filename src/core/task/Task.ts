@@ -1,6 +1,6 @@
-import { assert } from '../utils/assert';
-import { Identity } from './common/Identity';
-import { Employee } from './Employee';
+import { assert } from '../../utils/assert';
+import { Identity } from '../common/Identity';
+import { Employee } from '../employee/Employee';
 import { ExecutorTracker } from './ExecutorTracker';
 
 export enum TaskStatus {

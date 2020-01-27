@@ -1,7 +1,7 @@
-import { Identity } from './common/Identity';
-import { Task } from './Task';
-import { assert } from '../utils/assert';
-import { EventPublisher } from './common/EventPublisher';
+import { Identity } from '../common/Identity';
+import { Task } from '../task/Task';
+import { assert } from '../../utils/assert';
+import { EventPublisher } from '../common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
 import { EmployeeRest } from './EmployeeRest';
 

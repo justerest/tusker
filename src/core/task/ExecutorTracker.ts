@@ -1,5 +1,5 @@
-import { assert } from '../utils/assert';
-import { Employee } from './Employee';
+import { assert } from '../../utils/assert';
+import { Employee } from '../employee/Employee';
 import { TimeTracker } from './TimeTracker';
 
 export class ExecutorTracker {

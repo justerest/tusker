@@ -1,6 +1,6 @@
-import { Task } from '../../core/Task';
+import { Task } from '../../core/task/Task';
 import { assert } from 'src/utils/assert';
-import { TaskRepository } from '../../core/TaskRepository';
+import { TaskRepository } from '../../core/task/TaskRepository';
 
 export class InMemoryTaskRepository implements TaskRepository {
   private map: Map<Task['id'], Task> = new Map();

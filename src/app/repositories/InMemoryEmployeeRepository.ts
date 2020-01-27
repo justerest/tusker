@@ -1,6 +1,6 @@
-import { Employee } from '../../core/Employee';
+import { Employee } from '../../core/employee/Employee';
 import { assert } from 'src/utils/assert';
-import { EmployeeRepository } from '../../core/EmployeeRepository';
+import { EmployeeRepository } from '../../core/employee/EmployeeRepository';
 
 export class InMemoryEmployeeRepository implements EmployeeRepository {
   private map: Map<Employee['id'], Employee> = new Map([

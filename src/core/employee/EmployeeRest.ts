@@ -1,4 +1,4 @@
-import { DomainEvent } from './common/EventPublisher';
+import { DomainEvent } from '../common/EventPublisher';
 import { Employee } from './Employee';
 
 export class EmployeeRest extends DomainEvent {

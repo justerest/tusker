@@ -1,5 +1,5 @@
 import { Employee } from './Employee';
-import { Task } from './Task';
+import { Task } from '../task/Task';
 
 describe('Employee', () => {
   let employee: Employee;
