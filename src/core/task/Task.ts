@@ -1,7 +1,7 @@
 import { assert } from '../../utils/assert';
 import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
-import { ExecutorTracker } from './ExecutorTracker';
+import { TrackerMap } from './TrackerMap';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -12,7 +12,7 @@ export enum TaskStatus {
 
 export class Task {
   private status: TaskStatus = TaskStatus.Planned;
-  private executorTracker: ExecutorTracker = new ExecutorTracker();
+  private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];
 
   id: Identity;
@@ -46,11 +46,11 @@ export class Task {
   }
 
   getSpentTime(): number {
-    return this.executorTracker.getSpentTime();
+    return this.trackerMap.getTotalSpentTime();
   }
 
   getSpentTimeFor(employeeId: Employee['id']): number {
-    return this.executorTracker.getSpentTimeFor(employeeId);
+    return this.trackerMap.getSpentTimeFor(employeeId);
   }
 
   getExecutorId(): Employee['id'] | undefined {
@@ -58,20 +58,20 @@ export class Task {
   }
 
   getAllExecutorIds(): Employee['id'][] {
-    return this.executorTracker.getAllExecutorIds();
+    return this.trackerMap.getAllEmployeeIds();
   }
 
   assignExecutor(employeeId: Employee['id']): void {
     assert(!this.executorId, 'Can not assign second executor on task');
     this.executorId = employeeId;
-    this.executorTracker.addExecutor(employeeId);
+    this.trackerMap.addEmployee(employeeId);
   }
 
   vacateExecutor(): void {
     assert(this.status !== TaskStatus.Completed, 'Can not vacate executor of completed task');
     assert(this.executorId, 'Executor not exist');
     if (this.status === TaskStatus.InWork) {
-      this.executorTracker.stopTracking(this.executorId);
+      this.trackerMap.stopTrackerFor(this.executorId);
     }
     this.executorId = undefined;
     if (this.status !== TaskStatus.Planned) {
@@ -81,19 +81,19 @@ export class Task {
 
   takeInWork(): void {
     assert(this.executorId, 'Executor not exist');
-    this.executorTracker.startTracking(this.executorId);
+    this.trackerMap.startTrackerFor(this.executorId);
     this.changeStatus(TaskStatus.InWork);
   }
 
   snooze(): void {
     assert(this.executorId, 'Executor not exist');
-    this.executorTracker.stopTracking(this.executorId);
+    this.trackerMap.stopTrackerFor(this.executorId);
     this.changeStatus(TaskStatus.Snoozed);
   }
 
   complete(): void {
     if (this.executorId) {
-      this.executorTracker.stopTracking(this.executorId);
+      this.trackerMap.stopTrackerFor(this.executorId);
     }
     this.changeStatus(TaskStatus.Completed);
   }

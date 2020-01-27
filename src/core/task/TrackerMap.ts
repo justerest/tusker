@@ -2,23 +2,23 @@ import { assert } from '../../utils/assert';
 import { Employee } from '../employee/Employee';
 import { TimeTracker } from './TimeTracker';
 
-export class ExecutorTracker {
+export class TrackerMap {
   private map: Map<Employee['id'], TimeTracker> = new Map();
 
-  addExecutor(employeeId: Employee['id']): void {
+  addEmployee(employeeId: Employee['id']): void {
     assert(!this.map.has(employeeId), 'Employee already exist');
     this.map.set(employeeId, new TimeTracker());
   }
 
-  startTracking(employeeId: Employee['id']): void {
+  startTrackerFor(employeeId: Employee['id']): void {
     this.get(employeeId).startTracking();
   }
 
-  stopTracking(employeeId: Employee['id']): void {
+  stopTrackerFor(employeeId: Employee['id']): void {
     this.get(employeeId).stopTracking();
   }
 
-  getSpentTime(): number {
+  getTotalSpentTime(): number {
     return [...this.map.values()].reduce((res, el) => res + el.getSpentTime(), 0);
   }
 
@@ -26,7 +26,7 @@ export class ExecutorTracker {
     return this.get(employeeId).getSpentTime();
   }
 
-  getAllExecutorIds(): Employee['id'][] {
+  getAllEmployeeIds(): Employee['id'][] {
     return [...this.map.keys()];
   }
 

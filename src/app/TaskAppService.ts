@@ -33,13 +33,20 @@ export class TaskAppService {
     this.employeeRepository.save(employee);
   }
 
+  snoozeTask(taskId: Task['id']): void {
+    const task = this.taskRepository.getById(taskId);
+    this.taskManager.snoozeTask(task);
+    this.taskRepository.save(task);
+  }
+
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     this.taskManager.completeTask(task);
     this.taskRepository.save(task);
   }
 
-  getTask(taskId: Task['id']): Task {
-    return this.taskRepository.getById(taskId);
+  getTaskSpentTime(taskId: Task['id']): number {
+    const task = this.taskRepository.getById(taskId);
+    return task.getSpentTime();
   }
 }
