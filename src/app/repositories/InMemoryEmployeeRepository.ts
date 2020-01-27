@@ -6,12 +6,12 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
   private map: Map<Employee['id'], Employee> = new Map();
 
   getById(id: Employee['id']): Employee {
-    const employee = this.map.get(id);
+    const employee = this.map.get(id.toString());
     assert(employee);
     return employee;
   }
 
   save(employee: Employee): void {
-    this.map.set(employee.id, employee);
+    this.map.set(employee.id.toString(), employee);
   }
 }

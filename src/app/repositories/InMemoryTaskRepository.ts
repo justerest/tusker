@@ -8,7 +8,7 @@ export class InMemoryTaskRepository implements TaskRepository {
   private map: Map<Task['id'], Task> = new Map();
 
   getById(id: Task['id']): Task {
-    const task = this.map.get(id);
+    const task = this.map.get(id.toString());
     assert(task);
     return task;
   }
@@ -20,9 +20,6 @@ export class InMemoryTaskRepository implements TaskRepository {
   }
 
   save(task: Task): void {
-    if (!this.map.has(task.id)) {
-      task.id = this.map.size;
-    }
-    this.map.set(task.id, task);
+    this.map.set(task.id.toString(), task);
   }
 }
