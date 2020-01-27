@@ -95,7 +95,8 @@ export class Task {
   }
 
   complete(): void {
-    if (this.executorId) {
+    if (this.status === TaskStatus.InWork) {
+      assert(this.executorId);
       this.trackerMap.stopTrackerFor(this.executorId);
     }
     this.changeStatus(TaskStatus.Completed);

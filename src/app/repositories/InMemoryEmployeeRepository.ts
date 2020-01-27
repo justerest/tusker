@@ -11,6 +11,10 @@ export class InMemoryEmployeeRepository implements EmployeeRepository {
     return employee;
   }
 
+  getAll(): Employee[] {
+    return [...this.map.values()];
+  }
+
   save(employee: Employee): void {
     this.map.set(employee.id.toString(), employee);
   }
