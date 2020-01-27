@@ -2,6 +2,7 @@ import { assert } from '../../utils/assert';
 import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
+import { Time } from './Time';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -45,12 +46,12 @@ export class Task {
     this.status = status;
   }
 
-  getSpentTime(): number {
-    return this.trackerMap.getTotalSpentTime();
+  getSpentTime(): Time {
+    return Time.fromMs(this.trackerMap.getTotalSpentTime());
   }
 
-  getSpentTimeFor(employeeId: Employee['id']): number {
-    return this.trackerMap.getSpentTimeFor(employeeId);
+  getSpentTimeFor(employeeId: Employee['id']): Time {
+    return Time.fromMs(this.trackerMap.getSpentTimeFor(employeeId));
   }
 
   getExecutorId(): Employee['id'] | undefined {

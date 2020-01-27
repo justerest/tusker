@@ -1,7 +1,5 @@
 import { Task, TaskStatus } from './Task';
 
-const HOUR_IN_MILLISECONDS = 60 * 60 * 1000;
-
 describe('Task', () => {
   let task: Task;
 
@@ -37,7 +35,7 @@ describe('Task', () => {
       task.takeInWork();
       spentHour();
       task.complete();
-      expect(task.getSpentTime()).toBeGreaterThanOrEqual(HOUR_IN_MILLISECONDS);
+      expect(task.getSpentTime().toMin()).toBe(60);
     });
 
     it('should sum time from work to complete with breaks', () => {
@@ -50,8 +48,7 @@ describe('Task', () => {
       task.takeInWork();
       spentHour();
       task.complete();
-      expect(task.getSpentTime()).toBeGreaterThanOrEqual(2 * HOUR_IN_MILLISECONDS);
-      expect(task.getSpentTime()).toBeLessThan(3 * HOUR_IN_MILLISECONDS);
+      expect(task.getSpentTime().toMin()).toBe(120);
     });
 
     it('should calc spent time', () => {
@@ -59,7 +56,7 @@ describe('Task', () => {
       task.assignExecutor(employeeId);
       task.takeInWork();
       spentHour();
-      expect(task.getSpentTime()).toBeGreaterThanOrEqual(HOUR_IN_MILLISECONDS);
+      expect(task.getSpentTime().toMin()).toBe(60);
     });
 
     it('should calc spent time for two employees', () => {
@@ -72,7 +69,7 @@ describe('Task', () => {
       task.assignExecutor(secondEmployeeId);
       task.takeInWork();
       spentHour();
-      expect(task.getSpentTime()).toBeGreaterThanOrEqual(2 * HOUR_IN_MILLISECONDS);
+      expect(task.getSpentTime().toMin()).toBe(120);
     });
   });
 
@@ -83,8 +80,8 @@ describe('Task', () => {
     task.assignExecutor(employeeId);
     task.vacateExecutor();
     task.assignExecutor(employeeId2);
-    expect(task.getSpentTimeFor(employeeId)).toEqual(0);
-    expect(task.getSpentTimeFor(employeeId2)).toEqual(0);
+    expect(task.getSpentTimeFor(employeeId).toMin()).toEqual(0);
+    expect(task.getSpentTimeFor(employeeId2).toMin()).toEqual(0);
     expect(() => task.getSpentTimeFor(employeeId3)).toThrow();
   });
 
@@ -96,6 +93,17 @@ describe('Task', () => {
     task.assignExecutor(employeeId2);
     expect(task.getAllExecutorIds()).toEqual([employeeId, employeeId2]);
   });
+
+  describe(Task.prototype.getSpentTimeFor.name, () => {
+    it('should returns executor spent time', () => {
+      const employeeId = 1;
+      task.assignExecutor(employeeId);
+      task.takeInWork();
+      spentMinutes(30);
+      expect(task.getSpentTimeFor(employeeId).toMin()).toEqual(30);
+      expect(task.getSpentTimeFor(employeeId).toHr()).toEqual(0.5);
+    });
+  });
 });
 
 const now = Date.now;
@@ -103,6 +111,11 @@ function restoreTime(): void {
   Date.now = now;
 }
 
+function spentMinutes(minutes: number): void {
+  const MINUTE_IN_MILLISECONDS = 60 * 1000;
+  Date.now = jasmine.createSpy().and.returnValue(Date.now() + minutes * MINUTE_IN_MILLISECONDS);
+}
+
 function spentHour(): void {
-  Date.now = jasmine.createSpy().and.returnValue(Date.now() + HOUR_IN_MILLISECONDS);
+  spentMinutes(60);
 }

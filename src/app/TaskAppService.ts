@@ -47,6 +47,6 @@ export class TaskAppService {
 
   getTaskSpentTime(taskId: Task['id']): number {
     const task = this.taskRepository.getById(taskId);
-    return task.getSpentTime();
+    return task.getSpentTime().toMin();
   }
 }
