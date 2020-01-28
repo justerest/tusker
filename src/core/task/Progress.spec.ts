@@ -3,7 +3,7 @@ import { Task } from './Task';
 import { Time } from './Time';
 import { restoreTime, spentHour } from 'src/utils/time-mocks';
 
-describe('Progress', () => {
+describe(Progress.name, () => {
   let progress: Progress;
   let workingTask: Task;
 
@@ -37,21 +37,22 @@ describe('Progress', () => {
     expect(progress.getValue()).toBe(100);
   });
 
-  it('should calc progress of overdue task (unknown algorithm)', () => {
-    spentHour(3);
-    expect(progress.getValue()).toBeLessThan(100);
-    expect(progress.getValue()).toBeGreaterThan(50);
-  });
-
-  it('should calc new planned time of overdue task', () => {
+  it('should calc planned time of overdue task', () => {
     spentHour(2);
     progress.commit(50);
     expect(progress.getPlannedTime().toHr()).toBe(4);
   });
 
-  it('should calc new planned time of not overdue task', () => {
+  it('should calc optimistic planned time', () => {
     spentHour(0.5);
     progress.commit(50);
+    expect(progress.getPlannedTime().toHr()).toBe(1);
+  });
+
+  it('should calc returns planned time if optimistic overdue', () => {
+    spentHour(0.5);
+    progress.commit(50);
+    spentHour(0.5);
     expect(progress.getPlannedTime().toHr()).toBe(2);
   });
 
@@ -75,5 +76,18 @@ describe('Progress', () => {
     spentHour();
     expect(progress.getValue()).toBeLessThanOrEqual(51);
     expect(progress.getValue()).toBeGreaterThanOrEqual(49);
+  });
+
+  describe('+getValue() overdue planned time', () => {
+    it('should returns undefined progress of overdue task', () => {
+      spentHour(3);
+      expect(progress.getValue()).toBeUndefined();
+    });
+
+    it('should returns undefined progress of over overdue task with committed value', () => {
+      progress.commit(50);
+      spentHour(3);
+      expect(progress.getValue()).toBeUndefined();
+    });
   });
 });

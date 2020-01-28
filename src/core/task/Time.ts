@@ -5,6 +5,10 @@ const MINUTE_IN_MILLISECONDS = 60 * SECOND_IN_MILLISECONDS;
 const HOUR_IN_MILLISECONDS = 60 * MINUTE_IN_MILLISECONDS;
 
 export class Time {
+  static max(...times: Time[]): Time {
+    return times.sort((a, b) => b.toMs() - a.toMs())[0];
+  }
+
   static fromMs(timeInMs: number): Time {
     return new Time(timeInMs);
   }
