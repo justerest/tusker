@@ -20,6 +20,8 @@ export class Task {
 
   title: string = '';
 
+  plannedTime: Time = Time.fromMs(0);
+
   constructor() {}
 
   getStatus(): TaskStatus {
