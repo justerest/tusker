@@ -51,13 +51,14 @@ describe('Employee', () => {
   });
 
   describe('+completeTask()', () => {
-    it('should not affect attached task list', () => {
+    it('should affect attached task list', () => {
       const taskId: Task['id'] = 1;
       employee.attachTask(taskId);
       employee.takeTaskInWork(taskId);
       employee.snoozeCurrentTask();
-      employee.completeTask(taskId);
       expect(employee.getAttachedTaskIds()).toEqual([taskId]);
+      employee.completeTask(taskId);
+      expect(employee.getAttachedTaskIds()).toEqual([]);
     });
 
     it('should delete task from current', () => {

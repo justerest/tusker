@@ -15,7 +15,6 @@ export class Employee {
   private status: EmployeeStatus = EmployeeStatus.Free;
 
   private attachedTaskSet: Set<Task['id']> = new Set();
-  private uncompletedTaskSet: Set<Task['id']> = new Set();
   private currentTaskId?: Task['id'];
 
   id: Identity;
@@ -52,7 +51,6 @@ export class Employee {
   attachTask(taskId: Task['id']): void {
     assert(!this.attachedTaskSet.has(taskId), 'Task already attached');
     this.attachedTaskSet.add(taskId);
-    this.uncompletedTaskSet.add(taskId);
     if (this.status === EmployeeStatus.Free) {
       this.changeStatus(EmployeeStatus.Rest);
     }
@@ -61,7 +59,6 @@ export class Employee {
   detachTask(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
     this.attachedTaskSet.delete(taskId);
-    this.uncompletedTaskSet.delete(taskId);
     this.clearCurrentTaskIfNeeded(taskId);
   }
 
@@ -73,7 +70,7 @@ export class Employee {
     if (this.isCurrentTaskId(taskId)) {
       this.clearCurrentTask();
     }
-    if (!this.uncompletedTaskSet.size) {
+    if (!this.attachedTaskSet.size) {
       this.changeStatus(EmployeeStatus.Free);
     }
   }
@@ -84,7 +81,7 @@ export class Employee {
 
   private clearCurrentTask() {
     this.currentTaskId = undefined;
-    if (this.uncompletedTaskSet.size) {
+    if (this.attachedTaskSet.size) {
       this.changeStatus(EmployeeStatus.Rest);
     }
   }
@@ -109,7 +106,7 @@ export class Employee {
 
   completeTask(taskId: Task['id']): void {
     this.assertTaskAttached(taskId);
-    this.uncompletedTaskSet.delete(taskId);
+    this.attachedTaskSet.delete(taskId);
     this.clearCurrentTaskIfNeeded(taskId);
   }
 }
