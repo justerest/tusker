@@ -11,7 +11,14 @@ const taskManager = new TaskManager(employeeRepository, taskRepository);
 const taskAppService = new TaskAppService(taskRepository, employeeRepository, taskManager);
 const employeeAppService = new EmployeeAppService(employeeRepository, taskRepository);
 
-const employeeId = employeeAppService.createEmployee('Sergei');
+employeeAppService.createEmployee('Sergei');
+employeeAppService.createEmployee('Andrei');
+employeeAppService.createEmployee('Ivan');
+
+taskAppService.createTask('Super Task');
+taskAppService.createTask('Easy Task');
+taskAppService.createTask('New Task');
+taskAppService.createTask('Old Task');
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -30,17 +37,19 @@ server.get('/employee', (_, res) => {
   res.json(employeeRepository.getAll());
 });
 
-server.get('/employee/:employeeId', (req, res) => {
-  res.json(employeeRepository.getById(req.params.employeeId));
-});
-
 server.post('/employee', (req, res) => {
   res.json(employeeAppService.createEmployee(req.body.name));
 });
 
 server.get('/task', (_, res) => {
   res.json(
-    taskRepository.getAll().map((task) => ({ ...task, spentTime: task.getSpentTime().toMin() })),
+    taskRepository.getAll().map((task) => ({
+      ...task,
+      spentTime: task.getSpentTime().toMin(),
+      employeeName: task.getExecutorId()
+        ? employeeRepository.getById(task.getExecutorId()!).name
+        : '',
+    })),
   );
 });
 
@@ -48,11 +57,11 @@ server.post('/task', (req, res) => {
   res.json(taskAppService.createTask(req.body.title));
 });
 
-server.post('/task/:taskId/takeInWork/:employeeId', (req, res) => {
-  res.json(taskAppService.takeTaskInWorkBy(employeeId, req.params.taskId));
+server.post('/takeTaskInWork/:taskId/:employeeId', (req, res) => {
+  res.json(taskAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
 });
 
-server.post('/task/:taskId/complete', (req, res) => {
+server.post('/completeTask/:taskId', (req, res) => {
   res.json(taskAppService.completeTask(req.params.taskId));
 });
 

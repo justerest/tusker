@@ -26,7 +26,7 @@ export class Employee {
   }
 
   private changeStatus(status: EmployeeStatus): void {
-    assert(this.status !== status);
+    assert(this.status !== status, 'Can not change status on same');
     switch (status) {
       case EmployeeStatus.Free: {
         EventPublisher.instance.publish(new EmployeeFree(this));

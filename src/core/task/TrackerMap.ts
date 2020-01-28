@@ -6,8 +6,9 @@ export class TrackerMap {
   private map: Map<Employee['id'], TimeTracker> = new Map();
 
   addEmployee(employeeId: Employee['id']): void {
-    assert(!this.map.has(employeeId), 'Employee already exist');
-    this.map.set(employeeId, new TimeTracker());
+    if (!this.map.has(employeeId)) {
+      this.map.set(employeeId, new TimeTracker());
+    }
   }
 
   startTrackerFor(employeeId: Employee['id']): void {
