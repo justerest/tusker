@@ -1,4 +1,5 @@
 import { Task, TaskStatus } from './Task';
+import { Time } from './Time';
 
 describe('Task', () => {
   let task: Task;
@@ -112,8 +113,7 @@ function restoreTime(): void {
 }
 
 function spentMinutes(minutes: number): void {
-  const MINUTE_IN_MILLISECONDS = 60 * 1000;
-  Date.now = jasmine.createSpy().and.returnValue(Date.now() + minutes * MINUTE_IN_MILLISECONDS);
+  Date.now = jasmine.createSpy().and.returnValue(Date.now() + Time.fromMin(minutes).toMs());
 }
 
 function spentHour(): void {

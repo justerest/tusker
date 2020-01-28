@@ -9,6 +9,14 @@ export class Time {
     return new Time(timeInMs);
   }
 
+  static fromMin(timeInMin: number): Time {
+    return new Time(timeInMin * MINUTE_IN_MILLISECONDS);
+  }
+
+  static fromHr(timeInMin: number): Time {
+    return new Time(timeInMin * HOUR_IN_MILLISECONDS);
+  }
+
   private constructor(private time: number) {}
 
   toHr(): number {

@@ -5,13 +5,13 @@ export class TimeTracker {
   private inWorkSince: number = 0;
   private isTrackingOn: boolean = false;
 
-  startTracking(): void {
+  start(): void {
     assert(!this.isTrackingOn, 'Tracking already started');
     this.isTrackingOn = true;
     this.inWorkSince = Date.now();
   }
 
-  stopTracking(): void {
+  stop(): void {
     assert(this.isTrackingOn, 'Tracking not started yet');
     this.isTrackingOn = false;
     this.spentTime += this.getSpentTimeIncrement();

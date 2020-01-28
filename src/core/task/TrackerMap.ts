@@ -11,11 +11,11 @@ export class TrackerMap {
   }
 
   startTrackerFor(employeeId: Employee['id']): void {
-    this.get(employeeId).startTracking();
+    this.get(employeeId).start();
   }
 
   stopTrackerFor(employeeId: Employee['id']): void {
-    this.get(employeeId).stopTracking();
+    this.get(employeeId).stop();
   }
 
   getTotalSpentTime(): number {
