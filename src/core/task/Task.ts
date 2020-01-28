@@ -16,13 +16,11 @@ export class Task {
   private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];
 
-  id: Identity;
+  id: Identity = Math.random();
 
   title: string = '';
 
-  constructor(id: Identity = Math.random()) {
-    this.id = id;
-  }
+  constructor() {}
 
   getStatus(): TaskStatus {
     return this.status;

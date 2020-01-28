@@ -17,13 +17,11 @@ export class Employee {
   private attachedTaskSet: Set<Task['id']> = new Set();
   private currentTaskId?: Task['id'];
 
-  id: Identity;
+  id: Identity = Math.random();
 
   name: string = '';
 
-  constructor(id: Identity = Math.random()) {
-    this.id = id;
-  }
+  constructor() {}
 
   private changeStatus(status: EmployeeStatus): void {
     assert(this.status !== status, 'Can not change status on same');
