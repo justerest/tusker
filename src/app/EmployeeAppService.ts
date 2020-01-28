@@ -15,7 +15,7 @@ export class EmployeeAppService {
     return employee.id;
   }
 
-  getEmployeeTime(employeeId: Employee['id']): number {
+  getEmployeeSpentTime(employeeId: Employee['id']): number {
     const tasks = this.taskRepository.getByEmployee(employeeId);
     return tasks
       .map((task) => task.getSpentTimeFor(employeeId))

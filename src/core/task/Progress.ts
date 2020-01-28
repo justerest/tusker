@@ -1,4 +1,4 @@
-import { Task, TaskStatus } from './Task';
+import { Task } from './Task';
 import { Time } from './Time';
 
 class ProgressCommit {
@@ -25,23 +25,15 @@ export class Progress {
   }
 
   getValue(): number | undefined {
-    if (this.task.getStatus() === TaskStatus.Completed) {
-      return 100;
-    }
     const plannedTime = this.getPlannedTime();
     const spentTime = this.task.getSpentTime();
     if (plannedTime.toMs() > spentTime.toMs()) {
-      return Math.max(
-        Math.floor((spentTime.toMs() / plannedTime.toMs()) * 100),
-        this.progressCommit.value,
-      );
+      return Math.floor((spentTime.toMs() / plannedTime.toMs()) * 100);
     }
+    return 100;
   }
 
   getPlannedTime(): Time {
-    if (this.task.getSpentTime().toMs() < this.progressCommit.plannedTime.toMs()) {
-      return this.progressCommit.plannedTime;
-    }
     return Time.max(this.task.plannedTime, this.progressCommit.plannedTime);
   }
 }

@@ -3,6 +3,7 @@ import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
+import { Progress } from './Progress';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -15,6 +16,7 @@ export class Task {
   private status: TaskStatus = TaskStatus.Planned;
   private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];
+  private progress: Progress = new Progress(this);
 
   id: Identity = Math.random();
 
@@ -54,6 +56,10 @@ export class Task {
 
   getSpentTimeFor(employeeId: Employee['id']): Time {
     return Time.fromMs(this.trackerMap.getSpentTimeFor(employeeId));
+  }
+
+  getProgress(): Progress {
+    return this.progress;
   }
 
   getExecutorId(): Employee['id'] | undefined {

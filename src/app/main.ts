@@ -15,10 +15,10 @@ employeeAppService.createEmployee('Sergei');
 employeeAppService.createEmployee('Andrei');
 employeeAppService.createEmployee('Ivan');
 
-taskAppService.createTask('Super Task');
-taskAppService.createTask('Easy Task');
-taskAppService.createTask('New Task');
-taskAppService.createTask('Old Task');
+taskAppService.createTask('Super Task', 1);
+taskAppService.createTask('Easy Task', 1);
+taskAppService.createTask('New Task', 1);
+taskAppService.createTask('Old Task', 1);
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -34,7 +34,12 @@ server.use((_, res, next) => {
 });
 
 server.get('/employee', (_, res) => {
-  res.json(employeeRepository.getAll());
+  res.json(
+    employeeRepository.getAll().map((employee) => ({
+      ...employee,
+      spentTime: employeeAppService.getEmployeeSpentTime(employee.id),
+    })),
+  );
 });
 
 server.post('/employee', (req, res) => {
@@ -46,6 +51,12 @@ server.get('/task', (_, res) => {
     taskRepository.getAll().map((task) => ({
       ...task,
       spentTime: task.getSpentTime().toMin(),
+      plannedTime: task.plannedTime.toMin(),
+      neededTime: task
+        .getProgress()
+        .getPlannedTime()
+        .toMin(),
+      progress: task.getProgress().getValue(),
       employeeName: task.getExecutorId()
         ? employeeRepository.getById(task.getExecutorId()!).name
         : '',
@@ -54,11 +65,19 @@ server.get('/task', (_, res) => {
 });
 
 server.post('/task', (req, res) => {
-  res.json(taskAppService.createTask(req.body.title));
+  res.json(taskAppService.createTask(req.body.title, req.body.plannedTime));
 });
 
 server.post('/takeTaskInWork/:taskId/:employeeId', (req, res) => {
   res.json(taskAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
+});
+
+server.post('/snoozeTask/:taskId/', (req, res) => {
+  res.json(taskAppService.snoozeTask(req.params.taskId));
+});
+
+server.post('/reportTaskProgress/:taskId/', (req, res) => {
+  res.json(taskAppService.reportTaskProgress(req.params.taskId, req.body.progress));
 });
 
 server.post('/completeTask/:taskId', (req, res) => {

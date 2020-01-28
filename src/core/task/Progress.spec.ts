@@ -32,9 +32,9 @@ describe(Progress.name, () => {
     expect(progress.getValue()).toBe(50);
   });
 
-  it('progress of completed task should be 100%', () => {
+  it('progress of completed task should be last progress', () => {
     workingTask.complete();
-    expect(progress.getValue()).toBe(100);
+    expect(progress.getValue()).toBe(0);
   });
 
   it('should calc planned time of overdue task', () => {
@@ -43,10 +43,10 @@ describe(Progress.name, () => {
     expect(progress.getPlannedTime().toHr()).toBe(4);
   });
 
-  it('should calc optimistic planned time', () => {
+  it('should ignore optimistic planned time', () => {
     spentHour(0.5);
     progress.commit(50);
-    expect(progress.getPlannedTime().toHr()).toBe(1);
+    expect(progress.getPlannedTime().toHr()).toBe(2);
   });
 
   it('should calc returns planned time if optimistic overdue', () => {
@@ -56,9 +56,10 @@ describe(Progress.name, () => {
     expect(progress.getPlannedTime().toHr()).toBe(2);
   });
 
-  it('should calc progress with committed value', () => {
+  it('should not calc progress with committed value', () => {
     progress.commit(50);
-    expect(progress.getValue()).toBe(50);
+    expect(progress.getValue()).not.toBe(50);
+    expect(progress.getValue()).toBe(0);
   });
 
   it('should calc progress of overdue task with committed value', () => {
@@ -81,13 +82,13 @@ describe(Progress.name, () => {
   describe('+getValue() overdue planned time', () => {
     it('should returns undefined progress of overdue task', () => {
       spentHour(3);
-      expect(progress.getValue()).toBeUndefined();
+      expect(progress.getValue()).toBe(100);
     });
 
     it('should returns undefined progress of over overdue task with committed value', () => {
       progress.commit(50);
       spentHour(3);
-      expect(progress.getValue()).toBeUndefined();
+      expect(progress.getValue()).toBe(100);
     });
   });
 });

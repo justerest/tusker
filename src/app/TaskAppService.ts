@@ -3,6 +3,7 @@ import { Task, TaskStatus } from 'src/core/task/Task';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
+import { Time } from 'src/core/task/Time';
 
 export class TaskAppService {
   constructor(
@@ -11,9 +12,10 @@ export class TaskAppService {
     private taskManager: TaskManager,
   ) {}
 
-  createTask(title: string): Task['id'] {
+  createTask(title: string, plannedTimeInHr: number): Task['id'] {
     const task = new Task();
     task.title = title;
+    task.plannedTime = Time.fromHr(plannedTimeInHr);
     this.taskRepository.save(task);
     return task.id;
   }
@@ -39,7 +41,11 @@ export class TaskAppService {
 
   snoozeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    this.taskManager.snoozeTask(task);
+    if (task.getStatus() === TaskStatus.Completed) {
+      this.taskManager.cancelTaskCompletion(task);
+    } else {
+      this.taskManager.snoozeTask(task);
+    }
     this.taskRepository.save(task);
   }
 
@@ -52,5 +58,11 @@ export class TaskAppService {
   getTaskSpentTime(taskId: Task['id']): number {
     const task = this.taskRepository.getById(taskId);
     return task.getSpentTime().toMin();
+  }
+
+  reportTaskProgress(taskId: Task['id'], progress: number): void {
+    const task = this.taskRepository.getById(taskId);
+    task.getProgress().commit(progress);
+    this.taskRepository.save(task);
   }
 }
