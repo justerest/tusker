@@ -1,5 +1,5 @@
 import { TaskRepository } from 'src/core/task/TaskRepository';
-import { Task } from 'src/core/task/Task';
+import { Task, TaskStatus } from 'src/core/task/Task';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
@@ -29,6 +29,9 @@ export class TaskAppService {
   takeTaskInWorkBy(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
+    if (task.getStatus() === TaskStatus.Completed) {
+      this.taskManager.cancelTaskCompletion(task);
+    }
     this.taskManager.takeTaskInWorkBy(employee, task);
     this.taskRepository.save(task);
     this.employeeRepository.save(employee);

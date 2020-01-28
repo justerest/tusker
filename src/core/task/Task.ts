@@ -101,4 +101,13 @@ export class Task {
     }
     this.changeStatus(TaskStatus.Completed);
   }
+
+  cancelCompletion(): void {
+    assert(this.status === TaskStatus.Completed, 'Can not cancel completion of uncompleted task');
+    if (this.executorId) {
+      this.changeStatus(TaskStatus.Snoozed);
+    } else {
+      this.changeStatus(TaskStatus.Planned);
+    }
+  }
 }

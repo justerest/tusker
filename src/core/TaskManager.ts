@@ -67,4 +67,14 @@ export class TaskManager {
     }
     task.complete();
   }
+
+  cancelTaskCompletion(task: Task): void {
+    const executorId = task.getExecutorId();
+    if (executorId) {
+      const executor = this.employeeRepository.getById(executorId);
+      executor.attachTask(task.id);
+      this.employeeRepository.save(executor);
+    }
+    task.cancelCompletion();
+  }
 }
