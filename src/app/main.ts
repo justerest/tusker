@@ -12,13 +12,8 @@ const taskAppService = new TaskAppService(taskRepository, employeeRepository, ta
 const employeeAppService = new EmployeeAppService(employeeRepository, taskRepository);
 
 employeeAppService.createEmployee('Sergei');
+employeeAppService.createEmployee('Oleg');
 employeeAppService.createEmployee('Andrei');
-employeeAppService.createEmployee('Ivan');
-
-taskAppService.createTask('Super Task', 1);
-taskAppService.createTask('Easy Task', 1);
-taskAppService.createTask('New Task', 1);
-taskAppService.createTask('Old Task', 1);
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -52,11 +47,7 @@ server.get('/task', (_, res) => {
       ...task,
       spentTime: task.getSpentTime().toMin(),
       plannedTime: task.plannedTime.toMin(),
-      neededTime: task
-        .getProgress()
-        .getPlannedTime()
-        .toMin(),
-      progress: task.getProgress().getValue(),
+      neededTime: task.getNeededTime().toMin(),
       employeeName: task.getExecutorId()
         ? employeeRepository.getById(task.getExecutorId()!).name
         : '',

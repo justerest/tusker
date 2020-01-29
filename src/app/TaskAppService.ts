@@ -55,14 +55,9 @@ export class TaskAppService {
     this.taskRepository.save(task);
   }
 
-  getTaskSpentTime(taskId: Task['id']): number {
-    const task = this.taskRepository.getById(taskId);
-    return task.getSpentTime().toMin();
-  }
-
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
-    task.getProgress().commit(progress);
+    task.setNeededTime(Time.fromMs((task.getSpentTime().toMs() / progress) * 100));
     this.taskRepository.save(task);
   }
 }

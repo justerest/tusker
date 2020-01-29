@@ -3,7 +3,6 @@ import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
-import { Progress } from './Progress';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -16,13 +15,14 @@ export class Task {
   private status: TaskStatus = TaskStatus.Planned;
   private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];
-  private progress: Progress = new Progress(this);
 
   id: Identity = Math.random();
 
   title: string = '';
 
   plannedTime: Time = Time.fromMs(0);
+
+  private neededTime = Time.fromMs(0);
 
   constructor() {}
 
@@ -58,8 +58,12 @@ export class Task {
     return Time.fromMs(this.trackerMap.getSpentTimeFor(employeeId));
   }
 
-  getProgress(): Progress {
-    return this.progress;
+  getNeededTime(): Time {
+    return Time.max(this.neededTime, this.plannedTime);
+  }
+
+  setNeededTime(neededTime: Time): void {
+    this.neededTime = neededTime;
   }
 
   getExecutorId(): Employee['id'] | undefined {
