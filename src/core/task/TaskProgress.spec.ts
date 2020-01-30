@@ -1,6 +1,7 @@
 import { Task } from './Task';
 import { Time } from './Time';
 import { restoreTime, spentHour } from 'src/utils/time-mocks';
+import { Percent } from './Percent';
 
 describe('Task Progress', () => {
   let workingTask: Task;
@@ -13,7 +14,7 @@ describe('Task Progress', () => {
   }
 
   function commitProgress(value: number): void {
-    workingTask.setNeededTime(Time.fromMs((workingTask.getSpentTime().toMs() / value) * 100));
+    workingTask.commitProgress(Percent.fromInt(value));
   }
 
   beforeEach(() => {

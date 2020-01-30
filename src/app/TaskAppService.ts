@@ -4,6 +4,7 @@ import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
+import { Percent } from 'src/core/task/Percent';
 
 export class TaskAppService {
   constructor(
@@ -57,7 +58,7 @@ export class TaskAppService {
 
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
-    task.setNeededTime(Time.fromMs((task.getSpentTime().toMs() / progress) * 100));
+    task.commitProgress(Percent.fromInt(progress));
     this.taskRepository.save(task);
   }
 }

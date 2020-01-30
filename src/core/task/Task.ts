@@ -3,6 +3,7 @@ import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
+import { Percent } from './Percent';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -64,6 +65,10 @@ export class Task {
 
   setNeededTime(neededTime: Time): void {
     this.neededTime = neededTime;
+  }
+
+  commitProgress(percent: Percent): void {
+    this.setNeededTime(Time.fromMs(this.getSpentTime().toMs() / percent.toFloat()));
   }
 
   getExecutorId(): Employee['id'] | undefined {

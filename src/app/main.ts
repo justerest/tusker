@@ -13,7 +13,7 @@ const employeeAppService = new EmployeeAppService(employeeRepository, taskReposi
 
 employeeAppService.createEmployee('Sergei');
 employeeAppService.createEmployee('Oleg');
-employeeAppService.createEmployee('Andrei');
+employeeAppService.createEmployee('Manager');
 
 const hostname = '127.0.0.1';
 const port = 3000;

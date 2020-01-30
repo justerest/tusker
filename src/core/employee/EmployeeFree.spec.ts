@@ -16,22 +16,22 @@ describe('EmployeeFree', () => {
 
     it('if user complete work on task and other tasks are finished', () => {
       const listener = createListener();
-      const task = new Task(1);
-      const task2 = new Task(2);
+      const taskId = 1;
+      const taskId2 = 2;
       const employee = new Employee();
-      employee.attachTask(task);
-      employee.attachTask(task2);
-      employee.completeTask(task);
-      employee.completeTask(task2);
+      employee.attachTask(taskId);
+      employee.attachTask(taskId2);
+      employee.completeTask(taskId);
+      employee.completeTask(taskId2);
       listener.assertEmitted();
     });
 
     it('if user detach task and user have no another tasks', () => {
       const listener = createListener();
-      const task = new Task();
+      const taskId = 1;
       const employee = new Employee();
-      employee.attachTask(task);
-      employee.detachTask(task);
+      employee.attachTask(taskId);
+      employee.detachTask(taskId);
       listener.assertEmitted();
     });
 
@@ -51,23 +51,23 @@ describe('EmployeeFree', () => {
   describe('should not be emitted', () => {
     it('if user complete work on task and user have other tasks', () => {
       const listener = createListener();
-      const task = new Task(1);
-      const task2 = new Task(2);
+      const taskId = 1;
+      const taskId2 = 2;
       const employee = new Employee();
-      employee.attachTask(task);
-      employee.attachTask(task2);
-      employee.completeTask(task);
+      employee.attachTask(taskId);
+      employee.attachTask(taskId2);
+      employee.completeTask(taskId);
       listener.assertNoEvents();
     });
 
     it('if user detach task and user have other tasks', () => {
       const listener = createListener();
-      const task = new Task(1);
-      const task2 = new Task(2);
+      const taskId = 1;
+      const taskId2 = 2;
       const employee = new Employee();
-      employee.attachTask(task);
-      employee.attachTask(task2);
-      employee.detachTask(task);
+      employee.attachTask(taskId);
+      employee.attachTask(taskId2);
+      employee.detachTask(taskId);
       listener.assertNoEvents();
     });
   });
