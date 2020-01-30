@@ -12,9 +12,8 @@ const taskManager = new TaskManager(employeeRepository, taskRepository);
 const taskAppService = new TaskAppService(taskRepository, employeeRepository, taskManager);
 const employeeAppService = new EmployeeAppService(employeeRepository, taskRepository);
 
-employeeAppService.createEmployee('Klevakin Sergey');
-employeeAppService.createEmployee('Garan Stepan');
-employeeAppService.createEmployee('Manager');
+employeeAppService.createEmployee('Klevakin Sergey', 10, 18);
+employeeAppService.createEmployee('Garan Stepan', 11, 19);
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -36,12 +35,10 @@ server.get('/api/employee', (_, res) => {
     employeeRepository.getAll().map((employee) => ({
       ...employee,
       spentTime: employeeAppService.getEmployeeSpentTime(employee.id),
+      dailyAmount: employee.workingTime.getAmount().toMin(),
+      todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
     })),
   );
-});
-
-server.post('/api/employee', (req, res) => {
-  res.json(employeeAppService.createEmployee(req.body.name));
 });
 
 server.get('/api/task', (_, res) => {

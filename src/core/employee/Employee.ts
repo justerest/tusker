@@ -4,6 +4,7 @@ import { assert } from '../../utils/assert';
 import { EventPublisher } from '../common/EventPublisher';
 import { EmployeeFree } from './EmployeeFree';
 import { EmployeeRest } from './EmployeeRest';
+import { WorkingTime } from './WorkingTime';
 
 export enum EmployeeStatus {
   Free = 'Free',
@@ -20,6 +21,8 @@ export class Employee {
   id: Identity = Math.random();
 
   name: string = '';
+
+  workingTime!: WorkingTime;
 
   constructor() {}
 

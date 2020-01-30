@@ -9,6 +9,10 @@ export class Time {
     return times.sort((a, b) => b.toMs() - a.toMs())[0];
   }
 
+  static min(...times: Time[]): Time {
+    return times.sort((a, b) => a.toMs() - b.toMs())[0];
+  }
+
   static fromMs(timeInMs: number): Time {
     return new Time(timeInMs);
   }
@@ -17,8 +21,8 @@ export class Time {
     return new Time(timeInMin * MINUTE_IN_MILLISECONDS);
   }
 
-  static fromHr(timeInMin: number): Time {
-    return new Time(timeInMin * HOUR_IN_MILLISECONDS);
+  static fromHr(timeInHr: number): Time {
+    return new Time(timeInHr * HOUR_IN_MILLISECONDS);
   }
 
   private constructor(private time: number) {}

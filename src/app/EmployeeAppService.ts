@@ -1,6 +1,8 @@
 import { TaskRepository } from 'src/core/task/TaskRepository';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
+import { WorkingTime } from 'src/core/employee/WorkingTime';
+import { Time } from 'src/core/task/Time';
 
 export class EmployeeAppService {
   constructor(
@@ -8,9 +10,10 @@ export class EmployeeAppService {
     private taskRepository: TaskRepository,
   ) {}
 
-  createEmployee(name: string): Employee['id'] {
+  createEmployee(name: string, startAtHr: number, endAtHr: number): Employee['id'] {
     const employee = new Employee();
     employee.name = name;
+    employee.workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
     this.employeeRepository.save(employee);
     return employee.id;
   }
