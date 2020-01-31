@@ -12,18 +12,12 @@ const taskManager = new TaskManager(employeeRepository, taskRepository);
 const taskAppService = new TaskAppService(taskRepository, employeeRepository, taskManager);
 const employeeAppService = new EmployeeAppService(employeeRepository, taskRepository);
 
-employeeAppService.createEmployee('Klevakin Sergey', 10, 18);
-employeeAppService.createEmployee('Garan Stepan', 11, 19);
-
 const hostname = '127.0.0.1';
 const port = 3000;
-
 const server = express();
 
 server.use(express.static(resolve(__dirname, '../../public')));
-
 server.use('/api', express.json());
-
 server.use((_, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:4200');
   res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept');
@@ -39,6 +33,10 @@ server.get('/api/employee', (_, res) => {
       todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
     })),
   );
+});
+
+server.post('/api/employee', (req, res) => {
+  res.json(employeeAppService.createEmployee(req.body.name, req.body.workStart, req.body.workEnd));
 });
 
 server.get('/api/task', (_, res) => {
