@@ -15,7 +15,7 @@ export class Employee {
   private attachedTaskSet: Set<Task['id']> = new Set();
   private currentTaskId?: Task['id'];
 
-  id: Identity = Math.random();
+  id: Identity = Identity.random();
 
   name: string = '';
 
