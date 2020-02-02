@@ -1,9 +1,6 @@
 import { Identity } from '../common/Identity';
 import { Task } from '../task/Task';
 import { assert } from '../../utils/assert';
-import { EventPublisher } from '../common/EventPublisher';
-import { EmployeeFree } from './EmployeeFree';
-import { EmployeeRest } from './EmployeeRest';
 import { WorkingTime } from './WorkingTime';
 
 export enum EmployeeStatus {
@@ -26,18 +23,12 @@ export class Employee {
 
   constructor() {}
 
+  getStatus(): EmployeeStatus {
+    return this.status;
+  }
+
   private changeStatus(status: EmployeeStatus): void {
     assert(this.status !== status, 'Can not change status on same');
-    switch (status) {
-      case EmployeeStatus.Free: {
-        EventPublisher.instance.publish(new EmployeeFree(this));
-        break;
-      }
-      case EmployeeStatus.Rest: {
-        EventPublisher.instance.publish(new EmployeeRest(this));
-        break;
-      }
-    }
     this.status = status;
   }
 
