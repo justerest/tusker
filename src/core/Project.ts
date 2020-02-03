@@ -5,6 +5,21 @@ import { Employee } from './employee/Employee';
 import { last } from 'lodash';
 
 export class Project {
+  static serialize(project: Project): unknown {
+    return {
+      ...project,
+      boardList: project.boardList.map(Board.serialize),
+      employeeSet: [...project.employeeSet.values()],
+    };
+  }
+
+  static deserialize(projectSnapshot: any): Project {
+    return Object.assign(new Project(), projectSnapshot, {
+      boardList: projectSnapshot.boardList.map(Board.deserialize),
+      employeeSet: new Set(projectSnapshot.employeeSet),
+    });
+  }
+
   private boardList: Board[] = [];
   private employeeSet: Set<Employee['id']> = new Set();
 
