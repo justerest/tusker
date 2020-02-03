@@ -29,7 +29,7 @@ export class Project {
   planeNextBoard(date?: Date): Board {
     const activeBoard = this.getActiveBoard();
     assert(activeBoard === last(this.boardList), 'Can plane only one board after active');
-    const board = activeBoard.createNextBoard(this.geEmployeeIds());
+    const board = activeBoard.createNextBoard();
     if (date) {
       assert(date > activeBoard.date, 'Can not plane board for past');
       board.date = date;

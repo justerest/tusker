@@ -4,6 +4,7 @@ import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
 import { Percent } from './Percent';
+import { Board } from '../Board';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -35,6 +36,8 @@ export class Task {
   private executorId?: Employee['id'];
 
   id: Identity = Identity.generate();
+
+  boardId!: Board['id'];
 
   title: string = '';
 

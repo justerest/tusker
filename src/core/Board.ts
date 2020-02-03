@@ -6,17 +6,33 @@ import { WorkingTime } from './employee/WorkingTime';
 import { Identity } from './common/Identity';
 
 export class Board {
-  private employeeSet: Set<Employee['id']> = new Set();
-  private taskSet: Set<Task['id']> = new Set();
+  static serialize(board: Board): unknown {
+    return {
+      ...board,
+      employeeWorkingTimeMap: [...board.employeeWorkingTimeMap.entries()].map(([key, value]) => [
+        key,
+        WorkingTime.serialize(value),
+      ]),
+    };
+  }
+
+  static deserialize(boardSnapshot: any): Board {
+    return Object.assign(new Board(), boardSnapshot, {
+      date: new Date(boardSnapshot.date),
+      employeeWorkingTimeMap: new Map(
+        boardSnapshot.map(([key, value]: any) => WorkingTime.deserialize(value)),
+      ),
+    });
+  }
+
+  private employeeWorkingTimeMap: Map<Employee['id'], WorkingTime> = new Map();
   private completed: boolean = false;
 
   id: Identity = Identity.generate();
 
-  date: Date;
+  date!: Date;
 
-  constructor(date: Date) {
-    this.date = date;
-  }
+  constructor() {}
 
   isCompleted(): boolean {
     return this.completed;
@@ -26,21 +42,17 @@ export class Board {
     this.completed = true;
   }
 
-  getTaskIds(): Task['id'][] {
-    return [...this.taskSet.values()];
-  }
-
-  getEmployeeIds(): Employee['id'][] {
-    return [...this.employeeSet.values()];
-  }
-
   planeTask(title: string, plannedTime: Time): Task {
     assert(!this.isCompleted());
     const task = new Task();
+    task.boardId = this.id;
     task.title = title;
     task.plannedTime = plannedTime;
-    this.taskSet.add(task.id);
     return task;
+  }
+
+  getEmployeeIds(): Employee['id'][] {
+    return [...this.employeeWorkingTimeMap.keys()];
   }
 
   addEmployee(name: string, workingTime: WorkingTime): Employee {
@@ -48,16 +60,16 @@ export class Board {
     const employee = new Employee();
     employee.name = name;
     employee.workingTime = workingTime;
-    this.employeeSet.add(employee.id);
+    this.employeeWorkingTimeMap.set(employee.id, workingTime);
     return employee;
   }
 
-  createNextBoard(employeeIds: Employee['id'][] = [], taskIds: Task['id'][] = []): Board {
+  createNextBoard(): Board {
     const date = new Date(this.date);
     date.setDate(date.getDate());
-    const board = new Board(date);
-    board.employeeSet = new Set(employeeIds);
-    board.taskSet = new Set(taskIds);
+    const board = new Board();
+    board.date = date;
+    board.employeeWorkingTimeMap = new Map(this.employeeWorkingTimeMap);
     return board;
   }
 }
