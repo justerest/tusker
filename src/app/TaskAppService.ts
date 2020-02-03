@@ -5,6 +5,7 @@ import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
 import { Percent } from 'src/core/task/Percent';
+import { Transactional } from './repositories/FileSystemTransactionManager';
 
 export class TaskAppService {
   constructor(
@@ -13,6 +14,7 @@ export class TaskAppService {
     private taskManager: TaskManager,
   ) {}
 
+  @Transactional()
   createTask(title: string, plannedTimeInHr: number): Task['id'] {
     const task = new Task();
     task.title = title;
@@ -21,6 +23,7 @@ export class TaskAppService {
     return task.id;
   }
 
+  @Transactional()
   attachTaskToEmployee(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
@@ -29,6 +32,7 @@ export class TaskAppService {
     this.employeeRepository.save(employee);
   }
 
+  @Transactional()
   takeTaskInWorkBy(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
@@ -40,6 +44,7 @@ export class TaskAppService {
     this.employeeRepository.save(employee);
   }
 
+  @Transactional()
   snoozeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     if (task.getStatus() === TaskStatus.Completed) {
@@ -50,12 +55,14 @@ export class TaskAppService {
     this.taskRepository.save(task);
   }
 
+  @Transactional()
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     this.taskManager.completeTask(task);
     this.taskRepository.save(task);
   }
 
+  @Transactional()
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
     task.commitProgress(Percent.fromInt(progress));

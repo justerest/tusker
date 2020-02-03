@@ -3,6 +3,7 @@ import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Time } from 'src/core/task/Time';
+import { Transactional } from './repositories/FileSystemTransactionManager';
 
 export class EmployeeAppService {
   constructor(
@@ -10,6 +11,7 @@ export class EmployeeAppService {
     private taskRepository: TaskRepository,
   ) {}
 
+  @Transactional()
   createEmployee(name: string, startAtHr: number, endAtHr: number): Employee['id'] {
     const employee = new Employee();
     employee.name = name;
