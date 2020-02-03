@@ -7,7 +7,10 @@ import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeR
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { Board } from 'src/core/Board';
 import { FileSystemTransactionManager } from './repositories/FileSystemTransactionManager';
+import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
+import { Project } from 'src/core/Project';
 
+const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
@@ -19,10 +22,29 @@ const boardAppService = new BoardAppService(
   taskManager,
 );
 
-if (!boardRepository.getAll().length) {
+const currentProjectId = 1;
+const currentBoardId = 1;
+
+if (!projectRepository.getAll().find((project) => project.id === 1)) {
+  FileSystemTransactionManager.instance.startTransaction();
+  const project = new Project(currentBoardId);
+  project.id = currentProjectId;
+  projectRepository.save(project);
+  FileSystemTransactionManager.instance.commitTransaction();
+}
+
+if (!boardRepository.getAll().find((board) => board.id === 1)) {
   FileSystemTransactionManager.instance.startTransaction();
   const board = new Board();
   board.id = 1;
+  boardRepository.save(board);
+  FileSystemTransactionManager.instance.commitTransaction();
+}
+
+if (!boardRepository.getAll().find((board) => board.id === 2)) {
+  FileSystemTransactionManager.instance.startTransaction();
+  const board = new Board();
+  board.id = 2;
   boardRepository.save(board);
   FileSystemTransactionManager.instance.commitTransaction();
 }
@@ -41,7 +63,7 @@ server.use((_, res, next) => {
 
 server.get('/api/employee', (_, res) => {
   res.json(
-    employeeRepository.getAllForBoard(boardRepository.getById(1)).map((employee) => ({
+    employeeRepository.getAllForBoard(boardRepository.getById(currentBoardId)).map((employee) => ({
       ...employee,
       dailyAmount: employee.workingTime.getAmount().toMin(),
       todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
@@ -50,12 +72,19 @@ server.get('/api/employee', (_, res) => {
 });
 
 server.post('/api/employee', (req, res) => {
-  res.json(boardAppService.addEmployee(1, req.body.name, req.body.workStart, req.body.workEnd));
+  res.json(
+    boardAppService.addEmployee(
+      currentBoardId,
+      req.body.name,
+      req.body.workStart,
+      req.body.workEnd,
+    ),
+  );
 });
 
 server.get('/api/task', (_, res) => {
   res.json(
-    taskRepository.getAllForBoard(1).map((task) => ({
+    taskRepository.getAllForBoard(currentBoardId).map((task) => ({
       ...task,
       spentTime: task.getSpentTime().toMin(),
       plannedTime: task.plannedTime.toMin(),
@@ -68,7 +97,7 @@ server.get('/api/task', (_, res) => {
 });
 
 server.post('/api/task', (req, res) => {
-  res.json(boardAppService.createTask(1, req.body.title, req.body.plannedTime));
+  res.json(boardAppService.createTask(currentBoardId, req.body.title, req.body.plannedTime));
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {

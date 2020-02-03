@@ -67,7 +67,7 @@ export class Board {
     return employee;
   }
 
-  createNextBoard(): Board {
+  createNextBoard(employees: Employee[]): Board {
     const date = new Date(this.date);
     date.setDate(date.getDate());
     const board = new Board();

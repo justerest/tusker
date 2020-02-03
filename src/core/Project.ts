@@ -8,49 +8,48 @@ export class Project {
   static serialize(project: Project): unknown {
     return {
       ...project,
-      boardList: project.boardList.map(Board.serialize),
       employeeSet: [...project.employeeSet.values()],
     };
   }
 
   static deserialize(projectSnapshot: any): Project {
-    return Object.assign(new Project(), projectSnapshot, {
-      boardList: projectSnapshot.boardList.map(Board.deserialize),
+    return Object.assign(new Project(projectSnapshot.activeBoardId), projectSnapshot, {
       employeeSet: new Set(projectSnapshot.employeeSet),
     });
   }
 
-  private boardList: Board[] = [];
   private employeeSet: Set<Employee['id']> = new Set();
+  private boardIds: Board['id'][];
+  private activeBoardId: Board['id'];
 
   id: Identity = Identity.generate();
 
-  constructor() {}
-
-  getBoards(): Board[] {
-    return this.boardList.slice();
+  constructor(activeBoardId: Board['id']) {
+    this.boardIds = [activeBoardId];
+    this.activeBoardId = activeBoardId;
   }
 
-  getActiveBoard(): Board {
-    const activeBoard = this.boardList.find((board) => !board.isCompleted());
-    assert(activeBoard, 'Active board not found');
-    return activeBoard;
+  getActiveBoardId(): Board['id'] {
+    return this.activeBoardId;
   }
 
-  geEmployeeIds(): Employee['id'][] {
-    return [...this.employeeSet.values()];
+  getBoardIds(): Board['id'][] {
+    return this.boardIds.slice();
   }
 
-  planeNextBoard(date?: Date): Board {
-    const activeBoard = this.getActiveBoard();
-    assert(activeBoard === last(this.boardList), 'Can plane only one board after active');
-    const board = activeBoard.createNextBoard();
-    if (date) {
-      assert(date > activeBoard.date, 'Can not plane board for past');
-      board.date = date;
-    }
-    this.boardList.push(board);
+  canCreateNextBoard(): boolean {
+    return this.getActiveBoardId() === last(this.boardIds);
+  }
+
+  createNextBoard(): Board {
+    assert(this.canCreateNextBoard(), 'Can plane only one board after active');
+    const board = new Board();
+    this.boardIds.push(board.id);
     return board;
+  }
+
+  getEmployeeIds(): Employee['id'][] {
+    return [...this.employeeSet.values()];
   }
 
   addEmployee(employeeId: Employee['id']): void {
