@@ -11,21 +11,42 @@ import { Board } from 'src/core/Board';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/Project';
 import { ProjectRepository } from 'src/core/ProjectRepository';
+import { ProjectService } from 'src/core/ProjectService';
 
-export class BoardAppService {
+export class MainAppService {
   constructor(
     private projectRepository: ProjectRepository,
     private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
     private taskManager: TaskManager,
+    private projectService: ProjectService,
   ) {}
+
+  @Transactional()
+  getProjectOrCreate(projectId: Project['id']): Project {
+    if (!this.projectRepository.exist(projectId)) {
+      const project = this.projectService.createProject();
+      project.id = projectId;
+      this.projectRepository.save(project);
+    }
+    return this.projectRepository.getById(projectId);
+  }
 
   @Transactional()
   createBoard(projectId: Project['id']): void {
     const project = this.projectRepository.getById(projectId);
-    const board = project.createNextBoard();
-    this.boardRepository.save(board);
+    this.projectService.createNextBoard(project);
+    this.projectRepository.save(project);
+  }
+
+  @Transactional()
+  incrementProjectActiveBoard(projectId: Project['id']): void {
+    const project = this.projectRepository.getById(projectId);
+    if (project.canCreateNextBoard()) {
+      this.projectService.createNextBoard(project);
+    }
+    this.projectService.incrementProjectActiveBoard(project);
     this.projectRepository.save(project);
   }
 
@@ -33,7 +54,10 @@ export class BoardAppService {
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
     const board = this.boardRepository.getById(boardId);
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
-    const employee = board.addEmployee(name, workingTime);
+    const employee = new Employee();
+    employee.name = name;
+    employee.workingTime = workingTime;
+    board.addEmployee(employee.id, workingTime);
     this.employeeRepository.save(employee);
     this.boardRepository.save(board);
   }

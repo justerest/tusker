@@ -1,24 +1,17 @@
 import { Identity } from './common/Identity';
 import { Board } from './Board';
 import { assert } from 'src/utils/assert';
-import { Employee } from './employee/Employee';
 import { last } from 'lodash';
 
 export class Project {
   static serialize(project: Project): unknown {
-    return {
-      ...project,
-      employeeSet: [...project.employeeSet.values()],
-    };
+    return { ...project };
   }
 
   static deserialize(projectSnapshot: any): Project {
-    return Object.assign(new Project(projectSnapshot.activeBoardId), projectSnapshot, {
-      employeeSet: new Set(projectSnapshot.employeeSet),
-    });
+    return Object.assign(new Project(projectSnapshot.activeBoardId), projectSnapshot);
   }
 
-  private employeeSet: Set<Employee['id']> = new Set();
   private boardIds: Board['id'][];
   private activeBoardId: Board['id'];
 
@@ -27,6 +20,12 @@ export class Project {
   constructor(activeBoardId: Board['id']) {
     this.boardIds = [activeBoardId];
     this.activeBoardId = activeBoardId;
+  }
+
+  incrementActiveBoard(): void {
+    const next = this.boardIds[this.boardIds.length - 1];
+    assert(this.activeBoardId !== next, 'Can not increment active board');
+    this.activeBoardId = next;
   }
 
   getActiveBoardId(): Board['id'] {
@@ -46,14 +45,5 @@ export class Project {
     const board = new Board();
     this.boardIds.push(board.id);
     return board;
-  }
-
-  getEmployeeIds(): Employee['id'][] {
-    return [...this.employeeSet.values()];
-  }
-
-  addEmployee(employeeId: Employee['id']): void {
-    assert(!this.employeeSet.has(employeeId), 'Employee already exist');
-    this.employeeSet.add(employeeId);
   }
 }

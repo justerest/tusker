@@ -18,7 +18,6 @@ export class Board {
 
   static deserialize(boardSnapshot: any): Board {
     return Object.assign(new Board(), boardSnapshot, {
-      date: new Date(boardSnapshot.date),
       employeeWorkingTimeMap: new Map(
         boardSnapshot.employeeWorkingTimeMap.map(([key, value]: any) => [
           key,
@@ -29,11 +28,10 @@ export class Board {
   }
 
   private employeeWorkingTimeMap: Map<Employee['id'], WorkingTime> = new Map();
-  private completed: boolean = false;
+
+  private completed = false;
 
   id: Identity = Identity.generate();
-
-  date!: Date;
 
   constructor() {}
 
@@ -58,21 +56,8 @@ export class Board {
     return [...this.employeeWorkingTimeMap.keys()];
   }
 
-  addEmployee(name: string, workingTime: WorkingTime): Employee {
+  addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
     assert(!this.isCompleted());
-    const employee = new Employee();
-    employee.name = name;
-    employee.workingTime = workingTime;
-    this.employeeWorkingTimeMap.set(employee.id, workingTime);
-    return employee;
-  }
-
-  createNextBoard(employees: Employee[]): Board {
-    const date = new Date(this.date);
-    date.setDate(date.getDate());
-    const board = new Board();
-    board.date = date;
-    board.employeeWorkingTimeMap = new Map(this.employeeWorkingTimeMap);
-    return board;
+    this.employeeWorkingTimeMap.set(employeeId, workingTime);
   }
 }

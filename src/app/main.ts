@@ -1,54 +1,27 @@
 import express from 'express';
-import { BoardAppService } from './BoardAppService';
+import { MainAppService } from './MainAppService';
 import { TaskManager } from 'src/core/TaskManager';
 import { resolve } from 'path';
 import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepository';
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
-import { Board } from 'src/core/Board';
-import { FileSystemTransactionManager } from './repositories/FileSystemTransactionManager';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
-import { Project } from 'src/core/Project';
+import { ProjectService } from 'src/core/ProjectService';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
-const taskManager = new TaskManager(employeeRepository, taskRepository);
-const boardAppService = new BoardAppService(
+const projectService = new ProjectService(boardRepository, employeeRepository);
+const taskManager = new TaskManager(employeeRepository, taskRepository, boardRepository);
+const mainAppService = new MainAppService(
   projectRepository,
   boardRepository,
   taskRepository,
   employeeRepository,
   taskManager,
+  projectService,
 );
-
-const currentProjectId = 1;
-const currentBoardId = 1;
-
-if (!projectRepository.getAll().find((project) => project.id === 1)) {
-  FileSystemTransactionManager.instance.startTransaction();
-  const project = new Project(currentBoardId);
-  project.id = currentProjectId;
-  projectRepository.save(project);
-  FileSystemTransactionManager.instance.commitTransaction();
-}
-
-if (!boardRepository.getAll().find((board) => board.id === 1)) {
-  FileSystemTransactionManager.instance.startTransaction();
-  const board = new Board();
-  board.id = 1;
-  boardRepository.save(board);
-  FileSystemTransactionManager.instance.commitTransaction();
-}
-
-if (!boardRepository.getAll().find((board) => board.id === 2)) {
-  FileSystemTransactionManager.instance.startTransaction();
-  const board = new Board();
-  board.id = 2;
-  boardRepository.save(board);
-  FileSystemTransactionManager.instance.commitTransaction();
-}
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -76,7 +49,7 @@ server.get('/api/employee/:boardId', (req, res) => {
 
 server.post('/api/employee/:boardId', (req, res) => {
   res.json(
-    boardAppService.addEmployee(
+    mainAppService.addEmployee(
       req.params.boardId,
       req.body.name,
       req.body.workStart,
@@ -100,31 +73,37 @@ server.get('/api/task/:boardId', (req, res) => {
 });
 
 server.post('/api/task/:boardId', (req, res) => {
-  res.json(boardAppService.createTask(req.params.boardId, req.body.title, req.body.plannedTime));
+  res.json(mainAppService.createTask(req.params.boardId, req.body.title, req.body.plannedTime));
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
-  res.json(boardAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
+  res.json(mainAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(boardAppService.snoozeTask(req.params.taskId));
+  res.json(mainAppService.snoozeTask(req.params.taskId));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {
-  res.json(boardAppService.reportTaskProgress(req.params.taskId, req.body.progress));
+  res.json(mainAppService.reportTaskProgress(req.params.taskId, req.body.progress));
 });
 
 server.post('/api/completeTask/:taskId', (req, res) => {
-  res.json(boardAppService.completeTask(req.params.taskId));
+  res.json(mainAppService.completeTask(req.params.taskId));
 });
 
-server.get('/api/board', (_, res) => {
-  res.json(boardRepository.getAllForProject(projectRepository.getById(currentProjectId)));
+server.get('/api/board/:projectId', (req, res) => {
+  res.json(
+    boardRepository.getAllForProject(mainAppService.getProjectOrCreate(req.params.projectId)),
+  );
 });
 
-server.post('/api/board', (req, res) => {
-  res.json(boardAppService.createBoard(currentProjectId));
+server.post('/api/board/:projectId', (req, res) => {
+  res.json(mainAppService.createBoard(req.params.projectId));
+});
+
+server.post('/api/incrementBoard/:projectId', (req, res) => {
+  res.json(mainAppService.incrementProjectActiveBoard(req.params.projectId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));

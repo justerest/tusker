@@ -4,14 +4,17 @@ import { assert } from 'src/utils/assert';
 import { EmployeeRepository } from './employee/EmployeeRepository';
 import { TaskRepository } from './task/TaskRepository';
 import { Identity } from './common/Identity';
+import { BoardRepository } from './BoardRepository';
 
 export class TaskManager {
   constructor(
     private employeeRepository: EmployeeRepository,
     private taskRepository: TaskRepository,
+    private boardRepository: BoardRepository,
   ) {}
 
   attachTaskToEmployee(employee: Employee, task: Task): void {
+    this.assertBoardNotCompleted(task);
     if (task.getExecutorId()) {
       this.detachTask(task);
     }
@@ -20,6 +23,7 @@ export class TaskManager {
   }
 
   detachTask(task: Task): void {
+    this.assertBoardNotCompleted(task);
     const executorId = task.getExecutorId();
     assert(executorId, 'Task not attached to any executor');
     const executor = this.employeeRepository.getById(executorId);
@@ -29,6 +33,7 @@ export class TaskManager {
   }
 
   takeTaskInWorkBy(employee: Employee, task: Task): void {
+    this.assertBoardNotCompleted(task);
     assert(
       !Identity.equals(task.id, employee.getCurrentTaskId()),
       'Task already in work of this employee',
@@ -76,5 +81,12 @@ export class TaskManager {
       this.employeeRepository.save(executor);
     }
     task.cancelCompletion();
+  }
+
+  private assertBoardNotCompleted(task: Task): void {
+    assert(
+      !this.boardRepository.getById(task.boardId).isCompleted(),
+      'Can not work with task of completed board',
+    );
   }
 }
