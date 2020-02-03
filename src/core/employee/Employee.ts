@@ -10,8 +10,22 @@ export enum EmployeeStatus {
 }
 
 export class Employee {
-  private status: EmployeeStatus = EmployeeStatus.Free;
+  static serialize(employee: Employee) {
+    return {
+      ...employee,
+      attachedTaskSet: [...employee.attachedTaskSet.values()],
+      workingTime: WorkingTime.serialize(employee.workingTime),
+    };
+  }
 
+  static deserialize(employeeSnapshot: any): Employee {
+    return Object.assign(new Employee(), employeeSnapshot, {
+      attachedTaskSet: new Set(employeeSnapshot.attachedTaskSet),
+      workingTime: WorkingTime.deserialize(employeeSnapshot.workingTime),
+    });
+  }
+
+  private status: EmployeeStatus = EmployeeStatus.Free;
   private attachedTaskSet: Set<Task['id']> = new Set();
   private currentTaskId?: Task['id'];
 

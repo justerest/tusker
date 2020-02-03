@@ -13,6 +13,23 @@ export enum TaskStatus {
 }
 
 export class Task {
+  static serialize(task: Task) {
+    return {
+      ...task,
+      neededTime: task.neededTime.toMs(),
+      plannedTime: task.plannedTime.toMs(),
+      trackerMap: TrackerMap.serialize(task.trackerMap),
+    };
+  }
+
+  static deserialize(taskSnapshot: any): Task {
+    return Object.assign(new Task(), taskSnapshot, {
+      neededTime: Time.fromMs(taskSnapshot.neededTime),
+      plannedTime: Time.fromMs(taskSnapshot.plannedTime),
+      trackerMap: TrackerMap.deserialize(taskSnapshot.trackerMap),
+    });
+  }
+
   private status: TaskStatus = TaskStatus.Planned;
   private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];

@@ -1,8 +1,24 @@
 import { assert } from '../../utils/assert';
 import { Employee } from '../employee/Employee';
 import { TimeTracker } from './TimeTracker';
+import { Identity } from '../common/Identity';
 
 export class TrackerMap {
+  static serialize(trackerMap: TrackerMap) {
+    return [...trackerMap.map.entries()];
+  }
+
+  static deserialize(trackerMapSnapshot: any): TrackerMap {
+    const trackerMap = new TrackerMap();
+    trackerMap.map = new Map(
+      trackerMapSnapshot.map(([key, value]: [Identity, TimeTracker]) => [
+        key,
+        Object.assign(new TimeTracker(), value),
+      ]),
+    );
+    return trackerMap;
+  }
+
   private map: Map<Employee['id'], TimeTracker> = new Map();
 
   addEmployee(employeeId: Employee['id']): void {

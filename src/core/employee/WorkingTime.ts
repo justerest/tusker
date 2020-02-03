@@ -2,6 +2,21 @@ import { Time } from '../task/Time';
 import { assert } from 'src/utils/assert';
 
 export class WorkingTime {
+  static serialize(workingTime: WorkingTime) {
+    return {
+      ...workingTime,
+      startsAt: workingTime.startsAt.toMs(),
+      endsAt: workingTime.endsAt.toMs(),
+    };
+  }
+
+  static deserialize(workingTimeSnapshot: any): WorkingTime {
+    return new WorkingTime(
+      Time.fromMs(workingTimeSnapshot.startsAt),
+      Time.fromMs(workingTimeSnapshot.endsAt),
+    );
+  }
+
   startsAt: Time;
   endsAt: Time;
 
