@@ -6,21 +6,33 @@ import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
 import { Percent } from 'src/core/task/Percent';
 import { Transactional } from './repositories/FileSystemTransactionManager';
+import { BoardRepository } from 'src/core/BoardRepository';
+import { Board } from 'src/core/Board';
+import { WorkingTime } from 'src/core/employee/WorkingTime';
 
-export class TaskAppService {
+export class BoardAppService {
   constructor(
+    private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
     private taskManager: TaskManager,
   ) {}
 
   @Transactional()
-  createTask(title: string, plannedTimeInHr: number): Task['id'] {
-    const task = new Task();
-    task.title = title;
-    task.plannedTime = Time.fromHr(plannedTimeInHr);
+  addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
+    const board = this.boardRepository.getById(boardId);
+    const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
+    const employee = board.addEmployee(name, workingTime);
+    this.employeeRepository.save(employee);
+    this.boardRepository.save(board);
+  }
+
+  @Transactional()
+  createTask(boardId: Board['id'], title: string, plannedTimeInHr: number): void {
+    const board = this.boardRepository.getById(boardId);
+    const task = board.planeTask(title, Time.fromHr(plannedTimeInHr));
     this.taskRepository.save(task);
-    return task.id;
+    this.boardRepository.save(board);
   }
 
   @Transactional()

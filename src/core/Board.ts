@@ -20,7 +20,10 @@ export class Board {
     return Object.assign(new Board(), boardSnapshot, {
       date: new Date(boardSnapshot.date),
       employeeWorkingTimeMap: new Map(
-        boardSnapshot.map(([key, value]: any) => WorkingTime.deserialize(value)),
+        boardSnapshot.employeeWorkingTimeMap.map(([key, value]: any) => [
+          key,
+          WorkingTime.deserialize(value),
+        ]),
       ),
     });
   }

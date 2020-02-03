@@ -17,7 +17,7 @@ export class InMemoryTaskRepository implements TaskRepository {
     return [...this.map.values()];
   }
 
-  getByEmployee(employeeId: Employee['id']): Task[] {
+  getAllByEmployee(employeeId: Employee['id']): Task[] {
     return [...this.map.values()].filter((task) =>
       task.getAllExecutorIds().some((id) => Identity.equals(id, employeeId)),
     );

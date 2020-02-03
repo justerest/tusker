@@ -1,16 +1,31 @@
 import express from 'express';
-import { TaskAppService } from './TaskAppService';
+import { BoardAppService } from './BoardAppService';
 import { TaskManager } from 'src/core/TaskManager';
-import { EmployeeAppService } from './EmployeeAppService';
 import { resolve } from 'path';
 import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepository';
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
+import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
+import { Board } from 'src/core/Board';
+import { FileSystemTransactionManager } from './repositories/FileSystemTransactionManager';
 
+const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const taskManager = new TaskManager(employeeRepository, taskRepository);
-const taskAppService = new TaskAppService(taskRepository, employeeRepository, taskManager);
-const employeeAppService = new EmployeeAppService(employeeRepository, taskRepository);
+const boardAppService = new BoardAppService(
+  boardRepository,
+  taskRepository,
+  employeeRepository,
+  taskManager,
+);
+
+if (!boardRepository.getAll().length) {
+  FileSystemTransactionManager.instance.startTransaction();
+  const board = new Board();
+  board.id = 1;
+  boardRepository.save(board);
+  FileSystemTransactionManager.instance.commitTransaction();
+}
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -26,9 +41,8 @@ server.use((_, res, next) => {
 
 server.get('/api/employee', (_, res) => {
   res.json(
-    employeeRepository.getAll().map((employee) => ({
+    employeeRepository.getAllForBoard(boardRepository.getById(1)).map((employee) => ({
       ...employee,
-      spentTime: employeeAppService.getEmployeeSpentTime(employee.id),
       dailyAmount: employee.workingTime.getAmount().toMin(),
       todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
     })),
@@ -36,12 +50,12 @@ server.get('/api/employee', (_, res) => {
 });
 
 server.post('/api/employee', (req, res) => {
-  res.json(employeeAppService.createEmployee(req.body.name, req.body.workStart, req.body.workEnd));
+  res.json(boardAppService.addEmployee(1, req.body.name, req.body.workStart, req.body.workEnd));
 });
 
 server.get('/api/task', (_, res) => {
   res.json(
-    taskRepository.getAll().map((task) => ({
+    taskRepository.getAllForBoard(1).map((task) => ({
       ...task,
       spentTime: task.getSpentTime().toMin(),
       plannedTime: task.plannedTime.toMin(),
@@ -54,23 +68,23 @@ server.get('/api/task', (_, res) => {
 });
 
 server.post('/api/task', (req, res) => {
-  res.json(taskAppService.createTask(req.body.title, req.body.plannedTime));
+  res.json(boardAppService.createTask(1, req.body.title, req.body.plannedTime));
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
-  res.json(taskAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
+  res.json(boardAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(taskAppService.snoozeTask(req.params.taskId));
+  res.json(boardAppService.snoozeTask(req.params.taskId));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {
-  res.json(taskAppService.reportTaskProgress(req.params.taskId, req.body.progress));
+  res.json(boardAppService.reportTaskProgress(req.params.taskId, req.body.progress));
 });
 
 server.post('/api/completeTask/:taskId', (req, res) => {
-  res.json(taskAppService.completeTask(req.params.taskId));
+  res.json(boardAppService.completeTask(req.params.taskId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));
