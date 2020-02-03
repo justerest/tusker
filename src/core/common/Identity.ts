@@ -7,7 +7,7 @@ export class Identity {
     return id1.toString() === id2?.toString();
   }
 
-  static random(): Identity {
+  static generate(): Identity {
     return Math.random();
   }
 

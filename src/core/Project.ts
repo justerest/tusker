@@ -8,7 +8,7 @@ export class Project {
   private boardList: Board[] = [];
   private employeeSet: Set<Employee['id']> = new Set();
 
-  id: Identity = Identity.random();
+  id: Identity = Identity.generate();
 
   constructor() {}
 

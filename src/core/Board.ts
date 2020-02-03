@@ -3,11 +3,14 @@ import { Task } from './task/Task';
 import { assert } from 'src/utils/assert';
 import { Time } from './task/Time';
 import { WorkingTime } from './employee/WorkingTime';
+import { Identity } from './common/Identity';
 
 export class Board {
   private employeeSet: Set<Employee['id']> = new Set();
   private taskSet: Set<Task['id']> = new Set();
   private completed: boolean = false;
+
+  id: Identity = Identity.generate();
 
   date: Date;
 

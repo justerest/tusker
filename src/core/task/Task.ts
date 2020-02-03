@@ -34,7 +34,7 @@ export class Task {
   private trackerMap: TrackerMap = new TrackerMap();
   private executorId?: Employee['id'];
 
-  id: Identity = Identity.random();
+  id: Identity = Identity.generate();
 
   title: string = '';
 
