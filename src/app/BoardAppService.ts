@@ -9,14 +9,25 @@ import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
+import { Project } from 'src/core/Project';
+import { ProjectRepository } from 'src/core/ProjectRepository';
 
 export class BoardAppService {
   constructor(
+    private projectRepository: ProjectRepository,
     private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
     private taskManager: TaskManager,
   ) {}
+
+  @Transactional()
+  createBoard(projectId: Project['id']): void {
+    const project = this.projectRepository.getById(projectId);
+    const board = project.createNextBoard();
+    this.boardRepository.save(board);
+    this.projectRepository.save(project);
+  }
 
   @Transactional()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {

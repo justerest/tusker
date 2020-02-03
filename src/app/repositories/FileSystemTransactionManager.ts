@@ -10,6 +10,7 @@ export class FileSystemTransactionManager {
 
   transactionStarted$ = new Subject();
   transactionCommitted$ = new Subject();
+  transactionAborted$ = new Subject();
 
   startTransaction(): void {
     assert(!this.transactionStarted, 'Transaction already started');
@@ -22,6 +23,12 @@ export class FileSystemTransactionManager {
     this.transactionStarted = false;
     this.transactionCommitted$.next();
   }
+
+  rollbackTransaction(): void {
+    assert(this.transactionStarted, 'Transaction not started yet');
+    this.transactionStarted = false;
+    this.transactionAborted$.next();
+  }
 }
 
 export function Transactional(): MethodDecorator {
@@ -30,10 +37,15 @@ export function Transactional(): MethodDecorator {
     return {
       ...descriptor,
       value(...args: any[]) {
-        FileSystemTransactionManager.instance.startTransaction();
-        const result = fn.apply(this, args);
-        FileSystemTransactionManager.instance.commitTransaction();
-        return result;
+        try {
+          FileSystemTransactionManager.instance.startTransaction();
+          const result = fn.apply(this, args);
+          FileSystemTransactionManager.instance.commitTransaction();
+          return result;
+        } catch (e) {
+          FileSystemTransactionManager.instance.rollbackTransaction();
+          throw e;
+        }
       },
     } as any;
   };

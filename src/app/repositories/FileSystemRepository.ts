@@ -22,6 +22,10 @@ export abstract class FileSystemRepository<T extends { id: Identity }> {
       writeJSONSync(this.filePath, this.cache.map(this.serialize));
       this.cache = undefined;
     });
+    FileSystemTransactionManager.instance.transactionAborted$.subscribe(() => {
+      assert(this.cache, 'No cache');
+      this.cache = undefined;
+    });
   }
 
   private cache?: T[];

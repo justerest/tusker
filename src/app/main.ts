@@ -16,6 +16,7 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const taskManager = new TaskManager(employeeRepository, taskRepository);
 const boardAppService = new BoardAppService(
+  projectRepository,
   boardRepository,
   taskRepository,
   employeeRepository,
@@ -61,20 +62,22 @@ server.use((_, res, next) => {
   next();
 });
 
-server.get('/api/employee', (_, res) => {
+server.get('/api/employee/:boardId', (req, res) => {
   res.json(
-    employeeRepository.getAllForBoard(boardRepository.getById(currentBoardId)).map((employee) => ({
-      ...employee,
-      dailyAmount: employee.workingTime.getAmount().toMin(),
-      todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
-    })),
+    employeeRepository
+      .getAllForBoard(boardRepository.getById(req.params.boardId))
+      .map((employee) => ({
+        ...employee,
+        dailyAmount: employee.workingTime.getAmount().toMin(),
+        todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
+      })),
   );
 });
 
-server.post('/api/employee', (req, res) => {
+server.post('/api/employee/:boardId', (req, res) => {
   res.json(
     boardAppService.addEmployee(
-      currentBoardId,
+      req.params.boardId,
       req.body.name,
       req.body.workStart,
       req.body.workEnd,
@@ -82,9 +85,9 @@ server.post('/api/employee', (req, res) => {
   );
 });
 
-server.get('/api/task', (_, res) => {
+server.get('/api/task/:boardId', (req, res) => {
   res.json(
-    taskRepository.getAllForBoard(currentBoardId).map((task) => ({
+    taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
       ...task,
       spentTime: task.getSpentTime().toMin(),
       plannedTime: task.plannedTime.toMin(),
@@ -96,8 +99,8 @@ server.get('/api/task', (_, res) => {
   );
 });
 
-server.post('/api/task', (req, res) => {
-  res.json(boardAppService.createTask(currentBoardId, req.body.title, req.body.plannedTime));
+server.post('/api/task/:boardId', (req, res) => {
+  res.json(boardAppService.createTask(req.params.boardId, req.body.title, req.body.plannedTime));
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
@@ -114,6 +117,14 @@ server.post('/api/reportTaskProgress/:taskId/', (req, res) => {
 
 server.post('/api/completeTask/:taskId', (req, res) => {
   res.json(boardAppService.completeTask(req.params.taskId));
+});
+
+server.get('/api/board', (_, res) => {
+  res.json(boardRepository.getAllForProject(projectRepository.getById(currentProjectId)));
+});
+
+server.post('/api/board', (req, res) => {
+  res.json(boardAppService.createBoard(currentProjectId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));
