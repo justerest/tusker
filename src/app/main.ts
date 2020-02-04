@@ -28,6 +28,13 @@ const port = 3000;
 const server = express();
 
 server.use(express.static(resolve(__dirname, '../../public')));
+server.get('/:path', (req, res, next) => {
+  if (!req.params.path?.startsWith('api')) {
+    res.sendFile(resolve(__dirname, '../../public', 'index.html'));
+  } else {
+    next();
+  }
+});
 server.use('/api', express.json());
 server.use((_, res, next) => {
   res.header('Access-Control-Allow-Origin', 'http://localhost:4200');
