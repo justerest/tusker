@@ -34,19 +34,9 @@ export class MainAppService {
   }
 
   @Transactional()
-  createBoard(projectId: Project['id']): void {
+  createNextBoard(projectId: Project['id']): void {
     const project = this.projectRepository.getById(projectId);
     this.projectService.createNextBoard(project);
-    this.projectRepository.save(project);
-  }
-
-  @Transactional()
-  incrementProjectActiveBoard(projectId: Project['id']): void {
-    const project = this.projectRepository.getById(projectId);
-    if (project.canCreateNextBoard()) {
-      this.projectService.createNextBoard(project);
-    }
-    this.projectService.incrementProjectActiveBoard(project);
     this.projectRepository.save(project);
   }
 

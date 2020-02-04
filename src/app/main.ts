@@ -106,11 +106,7 @@ server.get('/api/board/:projectId', (req, res) => {
 });
 
 server.post('/api/board/:projectId', (req, res) => {
-  res.json(mainAppService.createBoard(req.params.projectId));
-});
-
-server.post('/api/incrementBoard/:projectId', (req, res) => {
-  res.json(mainAppService.incrementProjectActiveBoard(req.params.projectId));
+  res.json(mainAppService.createNextBoard(req.params.projectId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));

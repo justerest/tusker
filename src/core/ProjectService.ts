@@ -11,24 +11,18 @@ export class ProjectService {
 
   createProject(): Project {
     const board = new Board();
-    const project = new Project(board.id);
+    const project = new Project([board.id]);
     this.boardRepository.save(board);
     return project;
   }
 
   createNextBoard(project: Project): void {
+    const currentActiveBoard = this.boardRepository.getById(project.getActiveBoardId());
+    const employees = this.employeeRepository.getAllForBoard(currentActiveBoard);
     const board = project.createNextBoard();
-    const employees = this.employeeRepository.getAllForBoard(
-      this.boardRepository.getById(project.getActiveBoardId()),
-    );
+    currentActiveBoard.markAsCompleted();
     employees.forEach((employee) => board.addEmployee(employee.id, employee.workingTime));
-    this.boardRepository.save(board);
-  }
-
-  incrementProjectActiveBoard(project: Project): void {
-    const board = this.boardRepository.getById(project.getActiveBoardId());
-    board.markAsCompleted();
-    project.incrementActiveBoard();
+    this.boardRepository.save(currentActiveBoard);
     this.boardRepository.save(board);
   }
 }
