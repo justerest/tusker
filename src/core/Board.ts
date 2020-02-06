@@ -56,6 +56,22 @@ export class Board {
     return [...this.employeeWorkingTimeMap.keys()];
   }
 
+  getEmployeePlannedTime(employeeId: Employee['id']): Time {
+    const workingTime = this.getEmployeeWorkingTime(employeeId);
+    return workingTime.getAmount();
+  }
+
+  getEmployeeSpentTime(employeeId: Employee['id']): Time {
+    const workingTime = this.getEmployeeWorkingTime(employeeId);
+    return this.completed ? workingTime.getAmount() : workingTime.getTodaySpentTime();
+  }
+
+  private getEmployeeWorkingTime(employeeId: Identity): WorkingTime {
+    const workingTime = this.employeeWorkingTimeMap.get(employeeId);
+    assert(workingTime, 'Employee working time not found');
+    return workingTime;
+  }
+
   addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
     assert(!this.isCompleted());
     this.employeeWorkingTimeMap.set(employeeId, workingTime);

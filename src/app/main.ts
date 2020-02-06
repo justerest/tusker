@@ -43,14 +43,14 @@ server.use((_, res, next) => {
 });
 
 server.get('/api/employee/:boardId', (req, res) => {
+  const board = boardRepository.getById(req.params.boardId);
+  const employees = employeeRepository.getAllForBoard(board);
   res.json(
-    employeeRepository
-      .getAllForBoard(boardRepository.getById(req.params.boardId))
-      .map((employee) => ({
-        ...employee,
-        dailyAmount: employee.workingTime.getAmount().toMin(),
-        todaySpentTime: employee.workingTime.getTodaySpentTime().toMin(),
-      })),
+    employees.map((employee) => ({
+      ...employee,
+      dailyAmount: board.getEmployeePlannedTime(employee.id).toMin(),
+      todaySpentTime: board.getEmployeeSpentTime(employee.id).toMin(),
+    })),
   );
 });
 
