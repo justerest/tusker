@@ -23,9 +23,10 @@ export class Tag {
     );
   }
 
-  getSpentTimeFor(employeeId: Employee['id'], tasks: Task[]): Time {
+  getSpentTimeFor(employeeId: Employee['id'], employeeTasks: Task[]): Time {
     return Time.fromMs(
-      tasks
+      employeeTasks
+        .filter((task) => Identity.equals(this.id, task.tagId))
         .map((task) => task.getSpentTimeFor(employeeId).toMs())
         .reduce((res, time) => res + time, 0),
     );

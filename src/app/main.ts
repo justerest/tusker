@@ -8,6 +8,7 @@ import { FileSystemBoardRepository } from './repositories/FileSystemBoardReposit
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
 import { ProjectService } from 'src/core/ProjectService';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
+import { TagService } from 'src/core/tag/TagService';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
@@ -15,6 +16,7 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
+const tagService = new TagService(tagRepository, taskRepository);
 const taskManager = new TaskManager(employeeRepository, taskRepository, boardRepository);
 const mainAppService = new MainAppService(
   projectRepository,
@@ -116,6 +118,12 @@ server.post('/api/board/:projectId', (req, res) => {
 
 server.get('/api/tag', (_, res) => {
   res.json(tagRepository.getAll());
+});
+
+server.get('/api/tag/:tagId/:employeeId', (req, res) => {
+  const tag = tagRepository.getById(req.params.tagId);
+  const employee = employeeRepository.getById(req.params.employeeId);
+  res.json(tagService.getSpentTimeFor(tag, employee, new Date(0)));
 });
 
 server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
