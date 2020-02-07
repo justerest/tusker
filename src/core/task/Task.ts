@@ -47,8 +47,16 @@ export class Task {
 
   constructor() {}
 
-  getStatus(): TaskStatus {
-    return this.status;
+  isPlanned(): boolean {
+    return this.status === TaskStatus.Planned;
+  }
+
+  isInWork(): boolean {
+    return this.status === TaskStatus.InWork;
+  }
+
+  isCompleted(): boolean {
+    return this.status === TaskStatus.Completed;
   }
 
   private changeStatus(status: TaskStatus): void {

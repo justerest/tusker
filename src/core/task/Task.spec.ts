@@ -1,4 +1,4 @@
-import { Task, TaskStatus } from './Task';
+import { Task } from './Task';
 import { restoreTime, spentHour, spentMinutes } from 'src/utils/time-mocks';
 
 describe('Task', () => {
@@ -17,7 +17,7 @@ describe('Task', () => {
   });
 
   it('should be created with status Planned', () => {
-    expect(task.getStatus()).toBe(TaskStatus.Planned);
+    expect(task.isPlanned()).toBeTruthy();
   });
 
   describe(Task.prototype.takeInWork.name, () => {
@@ -25,7 +25,7 @@ describe('Task', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
       task.takeInWork();
-      expect(task.getStatus()).toBe(TaskStatus.InWork);
+      expect(task.isInWork()).toBeTruthy();
     });
   });
 
