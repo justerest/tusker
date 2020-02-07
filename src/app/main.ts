@@ -100,9 +100,11 @@ server.post('/api/completeTask/:taskId', (req, res) => {
 });
 
 server.get('/api/board/:projectId', (req, res) => {
-  res.json(
-    boardRepository.getAllForProject(mainAppService.getProjectOrCreate(req.params.projectId)),
-  );
+  const projectId = req.params.projectId;
+  const project = projectRepository.exist(projectId)
+    ? projectRepository.getById(projectId)
+    : mainAppService.createProject(projectId);
+  res.json(boardRepository.getAllForProject(project));
 });
 
 server.post('/api/board/:projectId', (req, res) => {

@@ -1,5 +1,5 @@
 import { TaskRepository } from 'src/core/task/TaskRepository';
-import { Task, TaskStatus } from 'src/core/task/Task';
+import { Task } from 'src/core/task/Task';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
@@ -12,6 +12,7 @@ import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/Project';
 import { ProjectRepository } from 'src/core/ProjectRepository';
 import { ProjectService } from 'src/core/ProjectService';
+import { assert } from 'src/utils/assert';
 
 export class MainAppService {
   constructor(
@@ -24,13 +25,10 @@ export class MainAppService {
   ) {}
 
   @Transactional()
-  getProjectOrCreate(projectId: Project['id']): Project {
-    if (!this.projectRepository.exist(projectId)) {
-      const project = this.projectService.createProject();
-      project.id = projectId;
-      this.projectRepository.save(project);
-    }
-    return this.projectRepository.getById(projectId);
+  createProject(projectId: Project['id']): Project {
+    const project = this.projectService.createProject(projectId);
+    this.projectRepository.save(project);
+    return project;
   }
 
   @Transactional()
@@ -73,7 +71,7 @@ export class MainAppService {
   takeTaskInWorkBy(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
-    if (task.getStatus() === TaskStatus.Completed) {
+    if (task.isCompleted()) {
       this.taskManager.cancelTaskCompletion(task);
     }
     this.taskManager.takeTaskInWorkBy(employee, task);
@@ -84,7 +82,7 @@ export class MainAppService {
   @Transactional()
   snoozeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    if (task.getStatus() === TaskStatus.Completed) {
+    if (task.isCompleted()) {
       this.taskManager.cancelTaskCompletion(task);
     } else {
       this.taskManager.snoozeTask(task);
