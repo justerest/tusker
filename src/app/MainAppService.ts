@@ -12,7 +12,7 @@ import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/Project';
 import { ProjectRepository } from 'src/core/ProjectRepository';
 import { ProjectService } from 'src/core/ProjectService';
-import { assert } from 'src/utils/assert';
+import { Tag } from 'src/core/tag/Tag';
 
 export class MainAppService {
   constructor(
@@ -101,6 +101,13 @@ export class MainAppService {
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
     task.commitProgress(Percent.fromInt(progress));
+    this.taskRepository.save(task);
+  }
+
+  @Transactional()
+  setTaskTag(taskId: Task['id'], tagId: Tag['id']): void {
+    const task = this.taskRepository.getById(taskId);
+    task.setTag(tagId);
     this.taskRepository.save(task);
   }
 }

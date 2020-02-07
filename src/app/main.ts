@@ -7,12 +7,14 @@ import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeR
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
 import { ProjectService } from 'src/core/ProjectService';
+import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
-const projectService = new ProjectService(boardRepository, employeeRepository);
+const tagRepository = new FileSystemTagRepository();
+const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
 const taskManager = new TaskManager(employeeRepository, taskRepository, boardRepository);
 const mainAppService = new MainAppService(
   projectRepository,
@@ -75,6 +77,7 @@ server.get('/api/task/:boardId', (req, res) => {
       employeeName: task.getExecutorId()
         ? employeeRepository.getById(task.getExecutorId()!).name
         : '',
+      tag: task.tagId,
     })),
   );
 });
@@ -109,6 +112,14 @@ server.get('/api/board/:projectId', (req, res) => {
 
 server.post('/api/board/:projectId', (req, res) => {
   res.json(mainAppService.createNextBoard(req.params.projectId));
+});
+
+server.get('/api/tag', (_, res) => {
+  res.json(tagRepository.getAll());
+});
+
+server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
+  res.json(mainAppService.setTaskTag(req.params.taskId, req.params.tagId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));

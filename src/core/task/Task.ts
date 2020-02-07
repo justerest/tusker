@@ -5,6 +5,7 @@ import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
 import { Percent } from './Percent';
 import { Board } from '../Board';
+import { Tag } from '../tag/Tag';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -28,6 +29,7 @@ export class Task {
       neededTime: Time.fromMs(taskSnapshot.neededTime),
       plannedTime: Time.fromMs(taskSnapshot.plannedTime),
       trackerMap: TrackerMap.deserialize(taskSnapshot.trackerMap),
+      creationDate: new Date(taskSnapshot.creationDate),
     });
   }
 
@@ -42,6 +44,10 @@ export class Task {
   title: string = '';
 
   plannedTime: Time = Time.fromMs(0);
+
+  tagId?: Tag['id'];
+
+  creationDate: Date = new Date();
 
   private neededTime = Time.fromMs(0);
 
@@ -152,5 +158,9 @@ export class Task {
     } else {
       this.changeStatus(TaskStatus.Planned);
     }
+  }
+
+  setTag(tagId: Tag['id']): void {
+    this.tagId = tagId;
   }
 }
