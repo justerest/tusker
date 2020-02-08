@@ -1,7 +1,7 @@
-import { BoardRepository } from './BoardRepository';
+import { BoardRepository } from '../BoardRepository';
 import { Project } from './Project';
-import { Board } from './Board';
-import { EmployeeRepository } from './employee/EmployeeRepository';
+import { Board } from '../Board';
+import { EmployeeRepository } from '../employee/EmployeeRepository';
 import { assert } from 'src/utils/assert';
 import { ProjectRepository } from './ProjectRepository';
 

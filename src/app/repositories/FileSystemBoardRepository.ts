@@ -1,7 +1,7 @@
 import { FileSystemRepository } from './FileSystemRepository';
 import { Board } from 'src/core/Board';
 import { BoardRepository } from 'src/core/BoardRepository';
-import { Project } from 'src/core/Project';
+import { Project } from 'src/core/project/Project';
 
 export class FileSystemBoardRepository extends FileSystemRepository<Board>
   implements BoardRepository {

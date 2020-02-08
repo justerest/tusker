@@ -1,5 +1,5 @@
-import { Identity } from './common/Identity';
-import { Board } from './Board';
+import { Identity } from '../common/Identity';
+import { Board } from '../Board';
 
 export class Project {
   static serialize(project: Project): unknown {

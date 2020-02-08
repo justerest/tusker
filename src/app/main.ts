@@ -6,7 +6,7 @@ import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepositor
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
-import { ProjectService } from 'src/core/ProjectService';
+import { ProjectService } from 'src/core/project/ProjectService';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 import { TagService } from 'src/core/tag/TagService';
 

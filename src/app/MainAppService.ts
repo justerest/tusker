@@ -9,9 +9,9 @@ import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
-import { Project } from 'src/core/Project';
-import { ProjectRepository } from 'src/core/ProjectRepository';
-import { ProjectService } from 'src/core/ProjectService';
+import { Project } from 'src/core/project/Project';
+import { ProjectRepository } from 'src/core/project/ProjectRepository';
+import { ProjectService } from 'src/core/project/ProjectService';
 import { Tag } from 'src/core/tag/Tag';
 
 export class MainAppService {

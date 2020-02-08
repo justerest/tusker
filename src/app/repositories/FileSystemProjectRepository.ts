@@ -1,6 +1,6 @@
 import { FileSystemRepository } from './FileSystemRepository';
-import { Project } from 'src/core/Project';
-import { ProjectRepository } from 'src/core/ProjectRepository';
+import { Project } from 'src/core/project/Project';
+import { ProjectRepository } from 'src/core/project/ProjectRepository';
 import { Identity } from 'src/core/common/Identity';
 
 export class FileSystemProjectRepository extends FileSystemRepository<Project>
