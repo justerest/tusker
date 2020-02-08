@@ -13,22 +13,29 @@ export abstract class FileSystemRepository<T extends { id: Identity }> {
     return resolve(process.cwd(), `db/${this.entityName}.json`);
   }
 
+  private transactionStarted = false;
+  private hasChanges = false;
+  private cache?: T[];
+
   constructor() {
     FileSystemTransactionManager.instance.transactionStarted$.subscribe(
-      () => (this.cache = this.resolveCache()),
+      () => (this.transactionStarted = true),
     );
     FileSystemTransactionManager.instance.transactionCommitted$.subscribe(() => {
-      assert(this.cache, 'No cache');
-      writeJSONSync(this.filePath, this.cache.map(this.serialize));
+      if (this.hasChanges) {
+        assert(this.cache, 'No cache');
+        writeJSONSync(this.filePath, this.cache.map(this.serialize));
+        this.hasChanges = false;
+      }
+      this.transactionStarted = false;
       this.cache = undefined;
     });
     FileSystemTransactionManager.instance.transactionAborted$.subscribe(() => {
-      assert(this.cache, 'No cache');
+      this.transactionStarted = false;
+      this.hasChanges = false;
       this.cache = undefined;
     });
   }
-
-  private cache?: T[];
 
   getById(id: T['id']): T {
     const entity = this.getAll().find((el) => Identity.equals(el.id, id));
@@ -37,10 +44,17 @@ export abstract class FileSystemRepository<T extends { id: Identity }> {
   }
 
   getAll(): T[] {
-    return this.cache || this.resolveCache();
+    this.resolveCache();
+    return this.cache || this.getData();
   }
 
-  private resolveCache(): T[] {
+  private resolveCache() {
+    if (this.transactionStarted && !this.cache) {
+      this.cache = this.getData();
+    }
+  }
+
+  private getData(): T[] {
     if (!existsSync(this.filePath)) {
       ensureFileSync(this.filePath);
       writeJSONSync(this.filePath, []);
@@ -49,7 +63,9 @@ export abstract class FileSystemRepository<T extends { id: Identity }> {
   }
 
   save(entity: T): void {
+    this.resolveCache();
     assert(this.cache, 'No cache');
+    this.hasChanges = true;
     const entities = this.cache;
     const index = entities.findIndex((t) => Identity.equals(t.id, entity.id));
     if (index === -1) {
