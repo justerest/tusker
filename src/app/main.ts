@@ -8,7 +8,7 @@ import { FileSystemBoardRepository } from './repositories/FileSystemBoardReposit
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
 import { ProjectService } from 'src/core/project/ProjectService';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
-import { TagService } from 'src/core/tag/TagService';
+import { TimeReportService } from 'src/core/TimeReportService';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
@@ -16,7 +16,7 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
-const tagService = new TagService(tagRepository, taskRepository);
+const timeReportService = new TimeReportService(taskRepository, tagRepository);
 const taskManager = new TaskManager(employeeRepository, taskRepository, boardRepository);
 const mainAppService = new MainAppService(
   projectRepository,
@@ -120,10 +120,18 @@ server.get('/api/tag', (_, res) => {
   res.json(tagRepository.getAll());
 });
 
-server.get('/api/tag/:tagId/:employeeId', (req, res) => {
-  const tag = tagRepository.getById(req.params.tagId);
-  const employee = employeeRepository.getById(req.params.employeeId);
-  res.json(tagService.getSpentTimeFor(tag, employee, new Date(0)));
+server.get('/api/report/:employeeId', (req, res) => {
+  const employeeId = req.params.employeeId;
+  const numberId = Number.parseFloat(employeeId);
+  res.json(
+    timeReportService
+      .getTimeReports(`${numberId}` === employeeId ? numberId : employeeId)
+      .map((timeReport) => ({
+        tag: timeReport.tag?.id,
+        date: timeReport.date.toDate(),
+        spentTime: timeReport.spentTime.toHr(),
+      })),
+  );
 });
 
 server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
