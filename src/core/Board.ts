@@ -31,6 +31,8 @@ export class Board {
 
   private completed = false;
 
+  private empty = true;
+
   id: Identity = Identity.generate();
 
   constructor() {}
@@ -40,6 +42,7 @@ export class Board {
   }
 
   markAsCompleted(): void {
+    assert(!this.empty, 'Can not complete empty board');
     this.completed = true;
   }
 
@@ -49,6 +52,7 @@ export class Board {
     task.boardId = this.id;
     task.title = title;
     task.plannedTime = plannedTime;
+    this.empty = false;
     return task;
   }
 
