@@ -53,13 +53,9 @@ export class Board {
     return taskRepository.getAllForBoard(this.id).length === 0;
   }
 
-  planeTask(title: string, plannedTime: Time): Task {
+  addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
     assert(!this.isCompleted());
-    const task = new Task();
-    task.boardId = this.id;
-    task.title = title;
-    task.plannedTime = plannedTime;
-    return task;
+    this.employeeWorkingTimeMap.set(employeeId, workingTime);
   }
 
   getEmployeeIds(): Employee['id'][] {
@@ -82,26 +78,20 @@ export class Board {
     return workingTime;
   }
 
-  addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
+  planeTask(title: string, plannedTime: Time): Task {
     assert(!this.isCompleted());
-    this.employeeWorkingTimeMap.set(employeeId, workingTime);
+    const task = new Task();
+    task.boardId = this.id;
+    task.title = title;
+    task.plannedTime = plannedTime;
+    return task;
   }
 
   attachTaskToEmployee(employeeId: Employee['id'], task: Task): void {
     this.assertBoardNotCompleted();
-    this.assertAccess(employeeId, task);
-    task.assignExecutor(employeeId);
-  }
-
-  private assertAccess(employeeId: Identity, task: Task) {
     this.assertEmployeeExist(employeeId);
     this.assertTaskAttachedToBoard(task);
-  }
-
-  takeTaskInWorkBy(employeeId: Employee['id'], taskRepository: TaskRepository, task: Task): void {
-    this.assertBoardNotCompleted();
-    this.assertAccess(employeeId, task);
-    task.takeInWork(taskRepository);
+    task.assignExecutor(employeeId);
   }
 
   private assertBoardNotCompleted(): void {
@@ -114,6 +104,16 @@ export class Board {
 
   private assertTaskAttachedToBoard(task: Task): void {
     assert(Identity.equals(this.id, task.boardId), 'Task not from this board');
+  }
+
+  takeTaskInWork(task: Task, taskRepository: TaskRepository): void {
+    this.assertBoardNotCompleted();
+    this.assertTaskAttachedToBoard(task);
+    const employeeId = task.getExecutorId();
+    if (employeeId) {
+      this.assertEmployeeExist(employeeId);
+    }
+    task.takeInWork(taskRepository);
   }
 
   cloneWithWorkingTime(): Board {

@@ -113,7 +113,7 @@ export class MainAppService {
     if (!isTaskAttachedToThisEmployee) {
       board.attachTaskToEmployee(employeeId, task);
     }
-    board.takeTaskInWorkBy(employeeId, this.taskRepository, task);
+    board.takeTaskInWork(task, this.taskRepository);
     this.taskRepository.save(task);
   }
 
