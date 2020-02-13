@@ -1,20 +1,20 @@
-import { TimeReportService } from './TimeReportService';
-import { Task } from './task/Task';
-import { TaskRepository } from './task/TaskRepository';
+import { TimeReportAppService } from './TimeReportAppService';
+import { Task } from '../core/task/Task';
+import { TaskRepository } from '../core/task/TaskRepository';
 
-describe('TimeReportService', () => {
-  let service: TimeReportService;
+describe('TimeReportAppService', () => {
+  let service: TimeReportAppService;
   let task: Task;
   let taskRepository: TaskRepository;
 
   beforeEach(() => {
     task = new Task();
-    service = new TimeReportService({ getAllByEmployee: () => [task, task] } as any, {} as any);
+    service = new TimeReportAppService({ getAllByEmployee: () => [task, task] } as any, {} as any);
     taskRepository = { findWorkingTaskByExecutor: (_) => undefined } as TaskRepository;
   });
 
   it('should be created', () => {
-    expect(service).toBeInstanceOf(TimeReportService);
+    expect(service).toBeInstanceOf(TimeReportAppService);
   });
 
   it('should returns time report list for employee', () => {

@@ -1,9 +1,9 @@
-import { Employee } from './employee/Employee';
-import { Time } from './task/Time';
-import { Tag } from './tag/Tag';
-import { SimpleDate } from './SimpleDate';
-import { TaskRepository } from './task/TaskRepository';
-import { TagRepository } from './tag/TagRepository';
+import { Employee } from '../core/employee/Employee';
+import { Time } from '../core/task/Time';
+import { Tag } from '../core/tag/Tag';
+import { SimpleDate } from '../core/SimpleDate';
+import { TaskRepository } from '../core/task/TaskRepository';
+import { TagRepository } from '../core/tag/TagRepository';
 import { groupBy } from 'lodash';
 
 export interface TimeReport {
@@ -12,7 +12,7 @@ export interface TimeReport {
   spentTime: Time;
 }
 
-export class TimeReportService {
+export class TimeReportAppService {
   constructor(private taskRepository: TaskRepository, private tagRepository: TagRepository) {}
 
   getTimeReports(employeeId: Employee['id']): TimeReport[] {

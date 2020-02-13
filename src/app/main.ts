@@ -6,7 +6,7 @@ import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeR
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
-import { TimeReportService } from 'src/core/TimeReportService';
+import { TimeReportAppService } from 'src/app/TimeReportAppService';
 import { Identity } from 'src/core/common/Identity';
 
 const projectRepository = new FileSystemProjectRepository();
@@ -14,7 +14,7 @@ const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
-const timeReportService = new TimeReportService(taskRepository, tagRepository);
+const timeReportAppService = new TimeReportAppService(taskRepository, tagRepository);
 const mainAppService = new MainAppService(
   projectRepository,
   boardRepository,
@@ -119,11 +119,13 @@ server.get('/api/tag', (_, res) => {
 
 server.get('/api/report/:employeeId', (req, res) => {
   res.json(
-    timeReportService.getTimeReports(Identity.primary(req.params.employeeId)).map((timeReport) => ({
-      tag: timeReport.tag?.id,
-      date: timeReport.date.toDate(),
-      spentTime: timeReport.spentTime.toHr(),
-    })),
+    timeReportAppService
+      .getTimeReports(Identity.primary(req.params.employeeId))
+      .map((timeReport) => ({
+        tag: timeReport.tag?.id,
+        date: timeReport.date.toDate(),
+        spentTime: timeReport.spentTime.toHr(),
+      })),
   );
 });
 
