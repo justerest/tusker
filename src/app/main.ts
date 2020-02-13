@@ -1,5 +1,5 @@
 import express from 'express';
-import { MainAppService } from './MainAppService';
+import { BoardAppService } from './BoardAppService';
 import { resolve } from 'path';
 import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepository';
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
@@ -8,6 +8,7 @@ import { FileSystemProjectRepository } from './repositories/FileSystemProjectRep
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 import { TimeReportAppService } from 'src/app/TimeReportAppService';
 import { Identity } from 'src/core/common/Identity';
+import { TaskAppService } from './TaskAppService';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
@@ -15,12 +16,13 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const timeReportAppService = new TimeReportAppService(taskRepository, tagRepository);
-const mainAppService = new MainAppService(
+const boardAppService = new BoardAppService(
   projectRepository,
   boardRepository,
   taskRepository,
   employeeRepository,
 );
+const taskAppService = new TaskAppService(boardRepository, taskRepository);
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -55,7 +57,7 @@ server.get('/api/employee/:boardId', (req, res) => {
 
 server.post('/api/employee/:boardId', (req, res) => {
   res.json(
-    mainAppService.addEmployee(
+    boardAppService.addEmployee(
       req.params.boardId,
       req.body.name,
       req.body.workStart,
@@ -80,37 +82,37 @@ server.get('/api/task/:boardId', (req, res) => {
 });
 
 server.post('/api/task/:boardId', (req, res) => {
-  res.json(mainAppService.createTask(req.params.boardId, req.body.title, req.body.plannedTime));
+  res.json(taskAppService.createTask(req.params.boardId, req.body.title, req.body.plannedTime));
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
   res.json(
-    mainAppService.takeTaskInWorkForce(Identity.primary(req.params.employeeId), req.params.taskId),
+    taskAppService.takeTaskInWorkForce(Identity.primary(req.params.employeeId), req.params.taskId),
   );
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(mainAppService.snoozeTaskOrCancelCompletion(req.params.taskId));
+  res.json(taskAppService.snoozeTaskOrCancelCompletion(req.params.taskId));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {
-  res.json(mainAppService.reportTaskProgress(req.params.taskId, req.body.progress));
+  res.json(taskAppService.reportTaskProgress(req.params.taskId, req.body.progress));
 });
 
 server.post('/api/completeTask/:taskId', (req, res) => {
-  res.json(mainAppService.completeTask(req.params.taskId));
+  res.json(taskAppService.completeTask(req.params.taskId));
 });
 
 server.get('/api/board/:projectId', (req, res) => {
   const projectId = req.params.projectId;
   const project = projectRepository.exist(projectId)
     ? projectRepository.getById(projectId)
-    : mainAppService.createProjectWithBoard(projectId);
+    : boardAppService.createProjectWithBoard(projectId);
   res.json(boardRepository.getAllForProject(project.id));
 });
 
 server.post('/api/board/:projectId', (req, res) => {
-  res.json(mainAppService.completeActiveBoardAndCreateNext(req.params.projectId));
+  res.json(boardAppService.completeActiveBoardAndCreateNext(req.params.projectId));
 });
 
 server.get('/api/tag', (_, res) => {
@@ -130,7 +132,7 @@ server.get('/api/report/:employeeId', (req, res) => {
 });
 
 server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
-  res.json(mainAppService.setTaskTag(req.params.taskId, req.params.tagId));
+  res.json(taskAppService.setTaskTag(req.params.taskId, req.params.tagId));
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));
