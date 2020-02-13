@@ -4,30 +4,41 @@ import { Board } from '../Board';
 import { EmployeeRepository } from '../employee/EmployeeRepository';
 import { assert } from 'src/utils/assert';
 import { ProjectRepository } from './ProjectRepository';
+import { TaskRepository } from '../task/TaskRepository';
 
 export class ProjectService {
   constructor(
     private projectRepository: ProjectRepository,
     private boardRepository: BoardRepository,
     private employeeRepository: EmployeeRepository,
+    private taskRepository: TaskRepository,
   ) {}
 
   createProject(projectId: Project['id']): Project {
     assert(!this.projectRepository.exist(projectId), 'Project already exist');
-    const board = new Board();
-    const project = new Project([board.id]);
+    const project = new Project();
     project.id = projectId;
-    this.boardRepository.save(board);
     return project;
   }
 
-  createNextBoard(project: Project): void {
-    const currentActiveBoard = this.boardRepository.getById(project.getActiveBoardId());
-    const employees = this.employeeRepository.getAllForBoard(currentActiveBoard);
+  createNextBoard(project: Project): Board {
     const board = project.createNextBoard();
-    currentActiveBoard.markAsCompleted();
-    employees.forEach((employee) => board.addEmployee(employee.id, employee.workingTime));
-    this.boardRepository.save(currentActiveBoard);
-    this.boardRepository.save(board);
+    const lastBoard = this.boardRepository.findLastProjectBoard(project.id);
+    if (lastBoard) {
+      assert(!this.isBoardEmpty(lastBoard), 'Many empty boards in project');
+      assert(lastBoard.isCompleted(), 'Many active boards in project');
+      const employees = this.employeeRepository.getAllForBoard(lastBoard);
+      employees.forEach((employee) => board.addEmployee(employee.id, employee.workingTime));
+    }
+    return board;
+  }
+
+  markBoardAsCompleted(board: Board): void {
+    assert(!this.isBoardEmpty(board), 'Can not complete empty board');
+    board.markAsCompleted();
+  }
+
+  private isBoardEmpty(board: Board) {
+    return !this.taskRepository.getAllForBoard(board.id).length;
   }
 }

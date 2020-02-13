@@ -1,5 +1,4 @@
 import { TimeReportService } from './TimeReportService';
-import { Employee } from './employee/Employee';
 import { Task } from './task/Task';
 import { Time } from './task/Time';
 import { SimpleDate } from './SimpleDate';

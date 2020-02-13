@@ -7,31 +7,15 @@ export class Project {
   }
 
   static deserialize(projectSnapshot: any): Project {
-    return Object.assign(new Project(projectSnapshot.boardIds), projectSnapshot);
+    return Object.assign(new Project(), projectSnapshot);
   }
-
-  private boardIds: Board['id'][];
-  private activeBoardId: Board['id'];
 
   id: Identity = Identity.generate();
 
-  constructor(initialBoardIds: [Board['id'], ...Board['id'][]]) {
-    this.boardIds = initialBoardIds;
-    this.activeBoardId = initialBoardIds[0];
-  }
-
-  getActiveBoardId(): Board['id'] {
-    return this.activeBoardId;
-  }
-
-  getBoardIds(): Board['id'][] {
-    return this.boardIds.slice();
-  }
+  constructor() {}
 
   createNextBoard(): Board {
-    const board = new Board();
-    this.activeBoardId = board.id;
-    this.boardIds.push(board.id);
+    const board = new Board(this.id);
     return board;
   }
 }

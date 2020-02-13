@@ -13,6 +13,7 @@ import { Project } from 'src/core/project/Project';
 import { ProjectRepository } from 'src/core/project/ProjectRepository';
 import { ProjectService } from 'src/core/project/ProjectService';
 import { Tag } from 'src/core/tag/Tag';
+import { assert } from 'src/utils/assert';
 
 export class MainAppService {
   constructor(
@@ -24,29 +25,61 @@ export class MainAppService {
     private projectService: ProjectService,
   ) {}
 
+  @MultiTransactional()
+  createProjectWithBoard(projectId: Project['id']): Project {
+    const project = this.createProject(projectId);
+    this.createNextBoard(project.id);
+    return project;
+  }
+
   @Transactional()
-  createProject(projectId: Project['id']): Project {
+  private createProject(projectId: Project['id']): Project {
     const project = this.projectService.createProject(projectId);
     this.projectRepository.save(project);
     return project;
   }
 
   @Transactional()
-  createNextBoard(projectId: Project['id']): void {
+  private createNextBoard(projectId: Project['id']): void {
     const project = this.projectRepository.getById(projectId);
-    this.projectService.createNextBoard(project);
-    this.projectRepository.save(project);
+    const board = this.projectService.createNextBoard(project);
+    this.boardRepository.save(board);
+  }
+
+  @MultiTransactional()
+  completeAndCreateNextBoard(projectId: Project['id']): void {
+    this.completeLastProjectBoard(projectId);
+    this.createNextBoard(projectId);
   }
 
   @Transactional()
+  private completeLastProjectBoard(projectId: Project['id']) {
+    const board = this.boardRepository.findLastProjectBoard(projectId);
+    assert(board);
+    this.projectService.markBoardAsCompleted(board);
+    this.boardRepository.save(board);
+  }
+
+  @MultiTransactional()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
     const board = this.boardRepository.getById(boardId);
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
+    const employee = this.createEmployee(name, workingTime);
+    this.addEmployeeToBoard(board, employee, workingTime);
+  }
+
+  @Transactional()
+  private createEmployee(name: string, workingTime: WorkingTime): Employee {
     const employee = new Employee();
     employee.name = name;
     employee.workingTime = workingTime;
-    board.addEmployee(employee.id, workingTime);
     this.employeeRepository.save(employee);
+    return employee;
+  }
+
+  @Transactional()
+  private addEmployeeToBoard(board: Board, employee: Employee, workingTime: WorkingTime) {
+    board.addEmployee(employee.id, workingTime);
     this.boardRepository.save(board);
   }
 
@@ -55,7 +88,6 @@ export class MainAppService {
     const board = this.boardRepository.getById(boardId);
     const task = board.planeTask(title, Time.fromHr(plannedTimeInHr));
     this.taskRepository.save(task);
-    this.boardRepository.save(board);
   }
 
   @Transactional()
@@ -81,7 +113,7 @@ export class MainAppService {
   }
 
   @Transactional()
-  private takeTaskInWorkBy(employee: Employee, task: Task) {
+  private takeTaskInWorkBy(employee: Employee, task: Task): void {
     this.taskManager.takeTaskInWorkBy(employee.id, task);
     this.taskRepository.save(task);
   }

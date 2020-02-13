@@ -4,6 +4,7 @@ import { assert } from 'src/utils/assert';
 import { Time } from './task/Time';
 import { WorkingTime } from './employee/WorkingTime';
 import { Identity } from './common/Identity';
+import { Project } from './project/Project';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -17,7 +18,7 @@ export class Board {
   }
 
   static deserialize(boardSnapshot: any): Board {
-    return Object.assign(new Board(), boardSnapshot, {
+    return Object.assign(new Board(boardSnapshot.projectId), boardSnapshot, {
       employeeWorkingTimeMap: new Map(
         boardSnapshot.employeeWorkingTimeMap.map(([key, value]: any) => [
           key,
@@ -31,18 +32,18 @@ export class Board {
 
   private completed = false;
 
-  private empty = true;
-
   id: Identity = Identity.generate();
+  projectId: Project['id'];
 
-  constructor() {}
+  constructor(projectId: Project['id']) {
+    this.projectId = projectId;
+  }
 
   isCompleted(): boolean {
     return this.completed;
   }
 
   markAsCompleted(): void {
-    assert(!this.empty, 'Can not complete empty board');
     this.completed = true;
   }
 
@@ -52,7 +53,6 @@ export class Board {
     task.boardId = this.id;
     task.title = title;
     task.plannedTime = plannedTime;
-    this.empty = false;
     return task;
   }
 

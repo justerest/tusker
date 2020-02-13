@@ -15,7 +15,12 @@ const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
-const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
+const projectService = new ProjectService(
+  projectRepository,
+  boardRepository,
+  employeeRepository,
+  taskRepository,
+);
 const timeReportService = new TimeReportService(taskRepository, tagRepository);
 const taskManager = new TaskManager(taskRepository, boardRepository);
 const mainAppService = new MainAppService(
@@ -108,12 +113,12 @@ server.get('/api/board/:projectId', (req, res) => {
   const projectId = req.params.projectId;
   const project = projectRepository.exist(projectId)
     ? projectRepository.getById(projectId)
-    : mainAppService.createProject(projectId);
-  res.json(boardRepository.getAllForProject(project));
+    : mainAppService.createProjectWithBoard(projectId);
+  res.json(boardRepository.getAllForProject(project.id));
 });
 
 server.post('/api/board/:projectId', (req, res) => {
-  res.json(mainAppService.createNextBoard(req.params.projectId));
+  res.json(mainAppService.completeAndCreateNextBoard(req.params.projectId));
 });
 
 server.get('/api/tag', (_, res) => {

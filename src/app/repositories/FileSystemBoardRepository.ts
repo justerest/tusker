@@ -2,6 +2,8 @@ import { FileSystemRepository } from './FileSystemRepository';
 import { Board } from 'src/core/Board';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Project } from 'src/core/project/Project';
+import { Identity } from 'src/core/common/Identity';
+import { last } from 'lodash';
 
 export class FileSystemBoardRepository extends FileSystemRepository<Board>
   implements BoardRepository {
@@ -9,8 +11,11 @@ export class FileSystemBoardRepository extends FileSystemRepository<Board>
   protected serialize = Board.serialize;
   protected deserialize = Board.deserialize;
 
-  getAllForProject(project: Project): Board[] {
-    const boardIdSet = new Set(project.getBoardIds());
-    return this.getAll().filter((board) => boardIdSet.has(board.id));
+  getAllForProject(projectId: Project['id']): Board[] {
+    return this.getAll().filter((board) => Identity.equals(projectId, board.projectId));
+  }
+
+  findLastProjectBoard(projectId: Project['id']): Board | undefined {
+    return last(this.getAllForProject(projectId));
   }
 }
