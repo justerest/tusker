@@ -1,11 +1,11 @@
-import { Employee } from './employee/Employee';
-import { Task } from './task/Task';
+import { Employee } from '../employee/Employee';
+import { Task } from '../task/Task';
 import { assert } from 'src/utils/assert';
-import { Time } from './task/Time';
-import { WorkingTime } from './employee/WorkingTime';
-import { Identity } from './common/Identity';
-import { Project } from './project/Project';
-import { TaskRepository } from './task/TaskRepository';
+import { Time } from '../task/Time';
+import { WorkingTime } from '../employee/WorkingTime';
+import { Identity } from '../common/Identity';
+import { Project } from '../project/Project';
+import { TaskRepository } from '../task/TaskRepository';
 
 export class Board {
   static serialize(board: Board): unknown {

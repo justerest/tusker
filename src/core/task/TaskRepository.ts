@@ -1,6 +1,6 @@
 import { Task } from './Task';
 import { Employee } from '../employee/Employee';
-import { Board } from '../Board';
+import { Board } from '../board/Board';
 
 export interface TaskRepository {
   getById(id: Task['id']): Task;

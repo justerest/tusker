@@ -1,6 +1,6 @@
 import { FileSystemRepository } from './FileSystemRepository';
-import { Board } from 'src/core/Board';
-import { BoardRepository } from 'src/core/BoardRepository';
+import { Board } from 'src/core/board/Board';
+import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Project } from 'src/core/project/Project';
 import { Identity } from 'src/core/common/Identity';
 import { last } from 'lodash';

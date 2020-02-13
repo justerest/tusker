@@ -4,7 +4,7 @@ import { Employee } from '../employee/Employee';
 import { TrackerMap } from './TrackerMap';
 import { Time } from './Time';
 import { Percent } from './Percent';
-import { Board } from '../Board';
+import { Board } from '../board/Board';
 import { Tag } from '../tag/Tag';
 import { TaskRepository } from './TaskRepository';
 

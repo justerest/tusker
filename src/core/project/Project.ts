@@ -1,8 +1,8 @@
 import { Identity } from '../common/Identity';
-import { Board } from '../Board';
+import { Board } from '../board/Board';
 import { assert } from 'src/utils/assert';
 import { ProjectRepository } from './ProjectRepository';
-import { BoardRepository } from '../BoardRepository';
+import { BoardRepository } from '../board/BoardRepository';
 import { TaskRepository } from '../task/TaskRepository';
 
 export class Project {

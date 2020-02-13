@@ -1,5 +1,5 @@
 import { Board } from './Board';
-import { Project } from './project/Project';
+import { Project } from '../project/Project';
 
 export interface BoardRepository {
   getById(boardId: Board['id']): Board;

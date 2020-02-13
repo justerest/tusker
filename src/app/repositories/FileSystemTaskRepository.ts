@@ -3,7 +3,7 @@ import { Employee } from 'src/core/employee/Employee';
 import { Identity } from 'src/core/common/Identity';
 import { Task } from 'src/core/task/Task';
 import { FileSystemRepository } from './FileSystemRepository';
-import { Board } from 'src/core/Board';
+import { Board } from 'src/core/board/Board';
 
 export class FileSystemTaskRepository extends FileSystemRepository<Task> implements TaskRepository {
   protected entityName = Task.name;

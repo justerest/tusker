@@ -1,5 +1,5 @@
 import { Employee } from './Employee';
-import { Board } from '../Board';
+import { Board } from '../board/Board';
 
 export interface EmployeeRepository {
   getById(employeeId: Employee['id']): Employee;
