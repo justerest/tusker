@@ -118,7 +118,7 @@ server.get('/api/board/:projectId', (req, res) => {
 });
 
 server.post('/api/board/:projectId', (req, res) => {
-  res.json(mainAppService.completeAndCreateNextBoard(req.params.projectId));
+  res.json(mainAppService.completeActiveBoardAndCreateNext(req.params.projectId));
 });
 
 server.get('/api/tag', (_, res) => {

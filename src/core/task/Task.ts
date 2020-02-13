@@ -67,21 +67,6 @@ export class Task {
 
   private changeStatus(status: TaskStatus): void {
     assert(this.status !== status, 'Can not change status on same');
-    switch (status) {
-      case TaskStatus.Snoozed: {
-        assert(this.status !== TaskStatus.Planned, 'Can not snooze Planned task');
-        assert(this.executorId, 'Can not snooze not assigned task');
-        break;
-      }
-      case TaskStatus.InWork: {
-        assert(this.executorId, 'Can not take in work not assigned task');
-        break;
-      }
-      case TaskStatus.Planned: {
-        assert(!this.executorId, 'Can not plane assigned task');
-        break;
-      }
-    }
     this.status = status;
   }
 
@@ -120,7 +105,6 @@ export class Task {
   }
 
   vacateExecutor(): void {
-    assert(this.status !== TaskStatus.Completed, 'Can not vacate executor of completed task');
     assert(this.executorId, 'Executor not exist');
     if (this.status === TaskStatus.InWork) {
       this.trackerMap.stopTrackerFor(this.executorId);
@@ -132,14 +116,17 @@ export class Task {
   }
 
   takeInWork(): void {
-    assert(this.executorId, 'Executor not exist');
+    assert(this.executorId, 'Can not take in work not assigned task');
     this.trackerMap.startTrackerFor(this.executorId);
     this.changeStatus(TaskStatus.InWork);
   }
 
   snooze(): void {
-    assert(this.executorId, 'Executor not exist');
-    this.trackerMap.stopTrackerFor(this.executorId);
+    assert(this.executorId, 'Can not snooze not assigned task');
+    assert(this.status !== TaskStatus.Planned, 'Can not snooze Planned task');
+    if (this.status === TaskStatus.InWork) {
+      this.trackerMap.stopTrackerFor(this.executorId);
+    }
     this.changeStatus(TaskStatus.Snoozed);
   }
 
@@ -154,10 +141,15 @@ export class Task {
   cancelCompletion(): void {
     assert(this.status === TaskStatus.Completed, 'Can not cancel completion of uncompleted task');
     if (this.executorId) {
-      this.changeStatus(TaskStatus.Snoozed);
+      this.snooze();
     } else {
-      this.changeStatus(TaskStatus.Planned);
+      this.plane();
     }
+  }
+
+  private plane() {
+    assert(!this.executorId, 'Can not plane assigned task');
+    this.changeStatus(TaskStatus.Planned);
   }
 
   setTag(tagId: Tag['id']): void {

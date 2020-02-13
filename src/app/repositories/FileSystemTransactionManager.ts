@@ -50,7 +50,3 @@ export function Transactional(): MethodDecorator {
     } as any;
   };
 }
-
-export function MultiTransactional(): MethodDecorator {
-  return () => {};
-}

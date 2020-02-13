@@ -5,7 +5,7 @@ import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
 import { Percent } from 'src/core/task/Percent';
-import { Transactional, MultiTransactional } from './repositories/FileSystemTransactionManager';
+import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
@@ -25,7 +25,7 @@ export class MainAppService {
     private projectService: ProjectService,
   ) {}
 
-  @MultiTransactional()
+  @UseCase()
   createProjectWithBoard(projectId: Project['id']): Project {
     const project = this.createProject(projectId);
     this.createNextBoard(project.id);
@@ -41,26 +41,25 @@ export class MainAppService {
 
   @Transactional()
   private createNextBoard(projectId: Project['id']): void {
-    const project = this.projectRepository.getById(projectId);
-    const board = this.projectService.createNextBoard(project);
+    const board = this.projectService.createNextBoard(projectId);
     this.boardRepository.save(board);
   }
 
-  @MultiTransactional()
-  completeAndCreateNextBoard(projectId: Project['id']): void {
+  @UseCase()
+  completeActiveBoardAndCreateNext(projectId: Project['id']): void {
     this.completeLastProjectBoard(projectId);
     this.createNextBoard(projectId);
   }
 
   @Transactional()
-  private completeLastProjectBoard(projectId: Project['id']) {
+  private completeLastProjectBoard(projectId: Project['id']): void {
     const board = this.boardRepository.findLastProjectBoard(projectId);
-    assert(board);
+    assert(board, 'No boards in project');
     this.projectService.markBoardAsCompleted(board);
     this.boardRepository.save(board);
   }
 
-  @MultiTransactional()
+  @UseCase()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
     const board = this.boardRepository.getById(boardId);
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
@@ -78,7 +77,7 @@ export class MainAppService {
   }
 
   @Transactional()
-  private addEmployeeToBoard(board: Board, employee: Employee, workingTime: WorkingTime) {
+  private addEmployeeToBoard(board: Board, employee: Employee, workingTime: WorkingTime): void {
     board.addEmployee(employee.id, workingTime);
     this.boardRepository.save(board);
   }
@@ -98,16 +97,13 @@ export class MainAppService {
     this.taskRepository.save(task);
   }
 
-  @MultiTransactional()
+  @UseCase()
   takeTaskInWorkForce(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
-    const currentEmployeeWorkingTak = this.taskRepository.findWorkingTaskByExecutor(employeeId);
-    if (currentEmployeeWorkingTak && currentEmployeeWorkingTak !== task) {
-      this.snoozeTaskOrCancelCompletion(currentEmployeeWorkingTak.id);
-    }
-    if (task.isCompleted()) {
-      task.cancelCompletion();
+    const currentEmployeeWorkingTask = this.taskRepository.findWorkingTaskByExecutor(employeeId);
+    if (currentEmployeeWorkingTask && currentEmployeeWorkingTask !== task) {
+      this.snoozeTaskOrCancelCompletion(currentEmployeeWorkingTask.id);
     }
     this.takeTaskInWorkBy(employee, task);
   }
@@ -149,4 +145,8 @@ export class MainAppService {
     task.setTag(tagId);
     this.taskRepository.save(task);
   }
+}
+
+function UseCase(): MethodDecorator {
+  return () => {};
 }

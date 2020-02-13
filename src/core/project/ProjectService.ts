@@ -21,7 +21,8 @@ export class ProjectService {
     return project;
   }
 
-  createNextBoard(project: Project): Board {
+  createNextBoard(projectId: Project['id']): Board {
+    const project = this.projectRepository.getById(projectId);
     const board = project.createNextBoard();
     const lastBoard = this.boardRepository.findLastProjectBoard(project.id);
     if (lastBoard) {

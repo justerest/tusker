@@ -1,7 +1,5 @@
 import { TimeReportService } from './TimeReportService';
 import { Task } from './task/Task';
-import { Time } from './task/Time';
-import { SimpleDate } from './SimpleDate';
 
 describe('TimeReportService', () => {
   let service: TimeReportService;
@@ -16,12 +14,18 @@ describe('TimeReportService', () => {
     expect(service).toBeInstanceOf(TimeReportService);
   });
 
-  it('should returns time reports for employee', () => {
+  it('should returns time report list for employee', () => {
     const employeeId = 1;
     task.assignExecutor(employeeId);
     task.takeInWork();
-    expect(
-      service.getTimeReports(employeeId).map((tr) => ({ ...tr, date: tr.date.toInt() })),
-    ).toEqual([{ spentTime: Time.fromMs(0), date: SimpleDate.fromDate(new Date()).toInt() }]);
+    expect(service.getTimeReports(employeeId)).toBeInstanceOf(Array);
+    expect(service.getTimeReports(employeeId).length).toBe(1);
+  });
+
+  it('should returns time report for employee', () => {
+    const employeeId = 1;
+    task.assignExecutor(employeeId);
+    task.takeInWork();
+    expect(service.getTimeReports(employeeId)[0]).toMatchObject({ spentTime: {}, date: {} });
   });
 });
