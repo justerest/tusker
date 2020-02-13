@@ -19,4 +19,10 @@ export class FileSystemTaskRepository extends FileSystemRepository<Task> impleme
       task.getAllExecutorIds().some((id) => Identity.equals(id, employeeId)),
     );
   }
+
+  findWorkingTaskByExecutor(employeeId: Employee['id']): Task | undefined {
+    return this.getAll().find(
+      (task) => Identity.equals(employeeId, task.getExecutorId()) && task.isInWork(),
+    );
+  }
 }

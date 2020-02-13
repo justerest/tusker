@@ -17,7 +17,7 @@ const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
 const timeReportService = new TimeReportService(taskRepository, tagRepository);
-const taskManager = new TaskManager(employeeRepository, taskRepository, boardRepository);
+const taskManager = new TaskManager(taskRepository, boardRepository);
 const mainAppService = new MainAppService(
   projectRepository,
   boardRepository,
@@ -89,11 +89,11 @@ server.post('/api/task/:boardId', (req, res) => {
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
-  res.json(mainAppService.takeTaskInWorkBy(req.params.employeeId, req.params.taskId));
+  res.json(mainAppService.takeTaskInWorkForce(req.params.employeeId, req.params.taskId));
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(mainAppService.snoozeTask(req.params.taskId));
+  res.json(mainAppService.snoozeTaskOrCancelCompletion(req.params.taskId));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {

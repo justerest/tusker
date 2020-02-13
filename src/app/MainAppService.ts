@@ -5,7 +5,7 @@ import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
 import { Percent } from 'src/core/task/Percent';
-import { Transactional } from './repositories/FileSystemTransactionManager';
+import { Transactional, MultiTransactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
@@ -62,30 +62,37 @@ export class MainAppService {
   attachTaskToEmployee(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
-    this.taskManager.attachTaskToEmployee(employee, task);
+    this.taskManager.attachTaskToEmployee(employee.id, task);
     this.taskRepository.save(task);
-    this.employeeRepository.save(employee);
   }
 
-  @Transactional()
-  takeTaskInWorkBy(employeeId: Employee['id'], taskId: Task['id']): void {
+  @MultiTransactional()
+  takeTaskInWorkForce(employeeId: Employee['id'], taskId: Task['id']): void {
     const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
-    if (task.isCompleted()) {
-      this.taskManager.cancelTaskCompletion(task);
+    const currentEmployeeWorkingTak = this.taskRepository.findWorkingTaskByExecutor(employeeId);
+    if (currentEmployeeWorkingTak && currentEmployeeWorkingTak !== task) {
+      this.snoozeTaskOrCancelCompletion(currentEmployeeWorkingTak.id);
     }
-    this.taskManager.takeTaskInWorkBy(employee, task);
-    this.taskRepository.save(task);
-    this.employeeRepository.save(employee);
+    if (task.isCompleted()) {
+      task.cancelCompletion();
+    }
+    this.takeTaskInWorkBy(employee, task);
   }
 
   @Transactional()
-  snoozeTask(taskId: Task['id']): void {
+  private takeTaskInWorkBy(employee: Employee, task: Task) {
+    this.taskManager.takeTaskInWorkBy(employee.id, task);
+    this.taskRepository.save(task);
+  }
+
+  @Transactional()
+  snoozeTaskOrCancelCompletion(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     if (task.isCompleted()) {
-      this.taskManager.cancelTaskCompletion(task);
+      task.cancelCompletion();
     } else {
-      this.taskManager.snoozeTask(task);
+      task.snooze();
     }
     this.taskRepository.save(task);
   }
@@ -93,7 +100,7 @@ export class MainAppService {
   @Transactional()
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    this.taskManager.completeTask(task);
+    task.complete();
     this.taskRepository.save(task);
   }
 

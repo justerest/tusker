@@ -6,6 +6,7 @@ export interface TaskRepository {
   getById(id: Task['id']): Task;
   getAllForBoard(boardId: Board['id']): Task[];
   getAllByEmployee(employeeId: Employee['id']): Task[];
+  findWorkingTaskByExecutor(employeeId: Employee['id']): Task | undefined;
   getAll(): Task[];
   save(task: Task): void;
 }
