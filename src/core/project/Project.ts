@@ -14,8 +14,7 @@ export class Project {
 
   constructor() {}
 
-  createNextBoard(): Board {
-    const board = new Board(this.id);
-    return board;
+  createBoard(): Board {
+    return new Board(this.id);
   }
 }

@@ -11,5 +11,10 @@ export class Identity {
     return Math.random();
   }
 
+  static primary(id: Identity): Identity {
+    const numberId = Number.parseFloat(`${id}`);
+    return `${numberId}` === id ? numberId : id;
+  }
+
   private constructor() {}
 }

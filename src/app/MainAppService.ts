@@ -2,18 +2,20 @@ import { TaskRepository } from 'src/core/task/TaskRepository';
 import { Task } from 'src/core/task/Task';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
-import { TaskManager } from 'src/core/TaskManager';
 import { Time } from 'src/core/task/Time';
 import { Percent } from 'src/core/task/Percent';
 import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
+import { FreeEmployeesRegistry } from 'src/core/FreeEmployeesRegistry';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/project/Project';
 import { ProjectRepository } from 'src/core/project/ProjectRepository';
 import { ProjectService } from 'src/core/project/ProjectService';
 import { Tag } from 'src/core/tag/Tag';
 import { assert } from 'src/utils/assert';
+import { BoardRegistry } from 'src/core/BoardRegistry';
+import { Identity } from 'src/core/common/Identity';
 
 export class MainAppService {
   constructor(
@@ -21,7 +23,6 @@ export class MainAppService {
     private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
-    private taskManager: TaskManager,
     private projectService: ProjectService,
   ) {}
 
@@ -40,9 +41,13 @@ export class MainAppService {
   }
 
   @Transactional()
-  private createNextBoard(projectId: Project['id']): void {
-    const board = this.projectService.createNextBoard(projectId);
+  private createNextBoard(projectId: Project['id']): Board {
+    const board = this.projectService.createNextBoard(
+      projectId,
+      new BoardRegistry(this.taskRepository),
+    );
     this.boardRepository.save(board);
+    return board;
   }
 
   @UseCase()
@@ -55,16 +60,15 @@ export class MainAppService {
   private completeLastProjectBoard(projectId: Project['id']): void {
     const board = this.boardRepository.findLastProjectBoard(projectId);
     assert(board, 'No boards in project');
-    this.projectService.markBoardAsCompleted(board);
+    board.markAsCompleted(new BoardRegistry(this.taskRepository));
     this.boardRepository.save(board);
   }
 
   @UseCase()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
-    const board = this.boardRepository.getById(boardId);
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
     const employee = this.createEmployee(name, workingTime);
-    this.addEmployeeToBoard(board, employee, workingTime);
+    this.addEmployeeToBoard(boardId, employee, workingTime);
   }
 
   @Transactional()
@@ -77,8 +81,13 @@ export class MainAppService {
   }
 
   @Transactional()
-  private addEmployeeToBoard(board: Board, employee: Employee, workingTime: WorkingTime): void {
-    board.addEmployee(employee.id, workingTime);
+  private addEmployeeToBoard(
+    boardId: Board['id'],
+    employeeId: Employee['id'],
+    workingTime: WorkingTime,
+  ): void {
+    const board = this.boardRepository.getById(boardId);
+    board.addEmployee(employeeId, workingTime);
     this.boardRepository.save(board);
   }
 
@@ -89,31 +98,32 @@ export class MainAppService {
     this.taskRepository.save(task);
   }
 
-  @Transactional()
-  attachTaskToEmployee(employeeId: Employee['id'], taskId: Task['id']): void {
-    const employee = this.employeeRepository.getById(employeeId);
-    const task = this.taskRepository.getById(taskId);
-    this.taskManager.attachTaskToEmployee(employee.id, task);
-    this.taskRepository.save(task);
-  }
-
   @UseCase()
   takeTaskInWorkForce(employeeId: Employee['id'], taskId: Task['id']): void {
-    const employee = this.employeeRepository.getById(employeeId);
     const task = this.taskRepository.getById(taskId);
     const currentEmployeeWorkingTask = this.taskRepository.findWorkingTaskByExecutor(employeeId);
     if (currentEmployeeWorkingTask && currentEmployeeWorkingTask !== task) {
       this.snoozeTaskOrCancelCompletion(currentEmployeeWorkingTask.id);
     }
-    this.takeTaskInWorkBy(employee, task);
+    this.takeTaskInWorkBy(employeeId, task);
   }
 
   @Transactional()
-  private takeTaskInWorkBy(employee: Employee, task: Task): void {
-    this.taskManager.takeTaskInWorkBy(employee.id, task);
+  private takeTaskInWorkBy(employeeId: Employee['id'], task: Task): void {
+    const board = this.boardRepository.getById(task.boardId);
+    const isTaskAttachedToThisEmployee = Identity.equals(employeeId, task.getExecutorId());
+    const isTaskAttachedToAnotherEmployee = task.getExecutorId() && !isTaskAttachedToThisEmployee;
+    if (isTaskAttachedToAnotherEmployee) {
+      task.vacateExecutor();
+    }
+    if (!isTaskAttachedToThisEmployee) {
+      board.attachTaskToEmployee(employeeId, task);
+    }
+    board.takeTaskInWork(new FreeEmployeesRegistry(this.taskRepository), task);
     this.taskRepository.save(task);
   }
 
+  @UseCase()
   @Transactional()
   snoozeTaskOrCancelCompletion(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);

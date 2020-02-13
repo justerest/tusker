@@ -5,6 +5,8 @@ import { Time } from './task/Time';
 import { WorkingTime } from './employee/WorkingTime';
 import { Identity } from './common/Identity';
 import { Project } from './project/Project';
+import { FreeEmployeesRegistry } from './FreeEmployeesRegistry';
+import { BoardRegistry } from './BoardRegistry';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -43,7 +45,8 @@ export class Board {
     return this.completed;
   }
 
-  markAsCompleted(): void {
+  markAsCompleted(boardRegistry: BoardRegistry): void {
+    assert(!boardRegistry.isBoardEmpty(this.id), 'Can not complete empty board');
     this.completed = true;
   }
 
@@ -79,5 +82,34 @@ export class Board {
   addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
     assert(!this.isCompleted());
     this.employeeWorkingTimeMap.set(employeeId, workingTime);
+  }
+
+  attachTaskToEmployee(employeeId: Employee['id'], task: Task): void {
+    this.assertBoardNotCompleted();
+    this.assertEmployeeExist(employeeId);
+    this.assertTaskAttachedToBoard(task);
+    task.assignExecutor(employeeId);
+  }
+
+  takeTaskInWork(freeEmployeesRegistry: FreeEmployeesRegistry, task: Task): void {
+    this.assertBoardNotCompleted();
+    this.assertTaskAttachedToBoard(task);
+    const employeeId = task.getExecutorId();
+    assert(employeeId, 'Task not attached');
+    this.assertEmployeeExist(employeeId);
+    assert(freeEmployeesRegistry.has(employeeId), 'Employee busy');
+    task.takeInWork();
+  }
+
+  private assertBoardNotCompleted(): void {
+    assert(!this.isCompleted(), 'Can not work with task of completed board');
+  }
+
+  private assertEmployeeExist(employeeId: Identity): void {
+    assert(this.employeeWorkingTimeMap.has(employeeId), 'Employee not exist on board');
+  }
+
+  private assertTaskAttachedToBoard(task: Task): void {
+    assert(Identity.equals(this.id, task.boardId), 'Task not from this board');
   }
 }

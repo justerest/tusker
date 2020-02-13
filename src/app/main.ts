@@ -1,6 +1,5 @@
 import express from 'express';
 import { MainAppService } from './MainAppService';
-import { TaskManager } from 'src/core/TaskManager';
 import { resolve } from 'path';
 import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepository';
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
@@ -9,26 +8,20 @@ import { FileSystemProjectRepository } from './repositories/FileSystemProjectRep
 import { ProjectService } from 'src/core/project/ProjectService';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 import { TimeReportService } from 'src/core/TimeReportService';
+import { Identity } from 'src/core/common/Identity';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
-const projectService = new ProjectService(
-  projectRepository,
-  boardRepository,
-  employeeRepository,
-  taskRepository,
-);
+const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
 const timeReportService = new TimeReportService(taskRepository, tagRepository);
-const taskManager = new TaskManager(taskRepository, boardRepository);
 const mainAppService = new MainAppService(
   projectRepository,
   boardRepository,
   taskRepository,
   employeeRepository,
-  taskManager,
   projectService,
 );
 
@@ -94,7 +87,9 @@ server.post('/api/task/:boardId', (req, res) => {
 });
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
-  res.json(mainAppService.takeTaskInWorkForce(req.params.employeeId, req.params.taskId));
+  res.json(
+    mainAppService.takeTaskInWorkForce(Identity.primary(req.params.employeeId), req.params.taskId),
+  );
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
@@ -126,16 +121,12 @@ server.get('/api/tag', (_, res) => {
 });
 
 server.get('/api/report/:employeeId', (req, res) => {
-  const employeeId = req.params.employeeId;
-  const numberId = Number.parseFloat(employeeId);
   res.json(
-    timeReportService
-      .getTimeReports(`${numberId}` === employeeId ? numberId : employeeId)
-      .map((timeReport) => ({
-        tag: timeReport.tag?.id,
-        date: timeReport.date.toDate(),
-        spentTime: timeReport.spentTime.toHr(),
-      })),
+    timeReportService.getTimeReports(Identity.primary(req.params.employeeId)).map((timeReport) => ({
+      tag: timeReport.tag?.id,
+      date: timeReport.date.toDate(),
+      spentTime: timeReport.spentTime.toHr(),
+    })),
   );
 });
 

@@ -4,14 +4,13 @@ import { Board } from '../Board';
 import { EmployeeRepository } from '../employee/EmployeeRepository';
 import { assert } from 'src/utils/assert';
 import { ProjectRepository } from './ProjectRepository';
-import { TaskRepository } from '../task/TaskRepository';
+import { BoardRegistry } from '../BoardRegistry';
 
 export class ProjectService {
   constructor(
     private projectRepository: ProjectRepository,
     private boardRepository: BoardRepository,
     private employeeRepository: EmployeeRepository,
-    private taskRepository: TaskRepository,
   ) {}
 
   createProject(projectId: Project['id']): Project {
@@ -21,25 +20,16 @@ export class ProjectService {
     return project;
   }
 
-  createNextBoard(projectId: Project['id']): Board {
+  createNextBoard(projectId: Project['id'], boardRegistry: BoardRegistry): Board {
     const project = this.projectRepository.getById(projectId);
-    const board = project.createNextBoard();
+    const board = project.createBoard();
     const lastBoard = this.boardRepository.findLastProjectBoard(project.id);
     if (lastBoard) {
-      assert(!this.isBoardEmpty(lastBoard), 'Many empty boards in project');
+      assert(!boardRegistry.isBoardEmpty(lastBoard), 'Many empty boards in project');
       assert(lastBoard.isCompleted(), 'Many active boards in project');
       const employees = this.employeeRepository.getAllForBoard(lastBoard);
       employees.forEach((employee) => board.addEmployee(employee.id, employee.workingTime));
     }
     return board;
-  }
-
-  markBoardAsCompleted(board: Board): void {
-    assert(!this.isBoardEmpty(board), 'Can not complete empty board');
-    board.markAsCompleted();
-  }
-
-  private isBoardEmpty(board: Board) {
-    return !this.taskRepository.getAllForBoard(board.id).length;
   }
 }
