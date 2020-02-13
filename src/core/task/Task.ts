@@ -6,6 +6,7 @@ import { Time } from './Time';
 import { Percent } from './Percent';
 import { Board } from '../Board';
 import { Tag } from '../tag/Tag';
+import { TaskRepository } from './TaskRepository';
 
 export enum TaskStatus {
   Planned = 'Planned',
@@ -115,8 +116,9 @@ export class Task {
     }
   }
 
-  takeInWork(): void {
+  takeInWork(taskRepository: TaskRepository): void {
     assert(this.executorId, 'Can not take in work not assigned task');
+    assert(!taskRepository.findWorkingTaskByExecutor(this.executorId), 'Employee busy');
     this.trackerMap.startTrackerFor(this.executorId);
     this.changeStatus(TaskStatus.InWork);
   }

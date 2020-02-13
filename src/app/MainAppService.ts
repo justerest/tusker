@@ -7,14 +7,11 @@ import { Percent } from 'src/core/task/Percent';
 import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/BoardRepository';
 import { Board } from 'src/core/Board';
-import { FreeEmployeesRegistry } from 'src/core/FreeEmployeesRegistry';
 import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/project/Project';
 import { ProjectRepository } from 'src/core/project/ProjectRepository';
-import { ProjectService } from 'src/core/project/ProjectService';
 import { Tag } from 'src/core/tag/Tag';
 import { assert } from 'src/utils/assert';
-import { BoardRegistry } from 'src/core/BoardRegistry';
 import { Identity } from 'src/core/common/Identity';
 
 export class MainAppService {
@@ -23,7 +20,6 @@ export class MainAppService {
     private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
-    private projectService: ProjectService,
   ) {}
 
   @UseCase()
@@ -35,17 +31,15 @@ export class MainAppService {
 
   @Transactional()
   private createProject(projectId: Project['id']): Project {
-    const project = this.projectService.createProject(projectId);
+    const project = Project.createProject(projectId, this.projectRepository);
     this.projectRepository.save(project);
     return project;
   }
 
   @Transactional()
   private createNextBoard(projectId: Project['id']): Board {
-    const board = this.projectService.createNextBoard(
-      projectId,
-      new BoardRegistry(this.taskRepository),
-    );
+    const project = this.projectRepository.getById(projectId);
+    const board = project.createBoard(this.boardRepository, this.taskRepository);
     this.boardRepository.save(board);
     return board;
   }
@@ -60,7 +54,7 @@ export class MainAppService {
   private completeLastProjectBoard(projectId: Project['id']): void {
     const board = this.boardRepository.findLastProjectBoard(projectId);
     assert(board, 'No boards in project');
-    board.markAsCompleted(new BoardRegistry(this.taskRepository));
+    board.markAsCompleted(this.taskRepository);
     this.boardRepository.save(board);
   }
 
@@ -119,7 +113,7 @@ export class MainAppService {
     if (!isTaskAttachedToThisEmployee) {
       board.attachTaskToEmployee(employeeId, task);
     }
-    board.takeTaskInWork(new FreeEmployeesRegistry(this.taskRepository), task);
+    board.takeTaskInWorkBy(employeeId, this.taskRepository, task);
     this.taskRepository.save(task);
   }
 

@@ -5,8 +5,7 @@ import { Time } from './task/Time';
 import { WorkingTime } from './employee/WorkingTime';
 import { Identity } from './common/Identity';
 import { Project } from './project/Project';
-import { FreeEmployeesRegistry } from './FreeEmployeesRegistry';
-import { BoardRegistry } from './BoardRegistry';
+import { TaskRepository } from './task/TaskRepository';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -45,9 +44,13 @@ export class Board {
     return this.completed;
   }
 
-  markAsCompleted(boardRegistry: BoardRegistry): void {
-    assert(!boardRegistry.isBoardEmpty(this.id), 'Can not complete empty board');
+  markAsCompleted(taskRepository: TaskRepository): void {
+    assert(!this.isEmpty(taskRepository), 'Can not complete empty board');
     this.completed = true;
+  }
+
+  isEmpty(taskRepository: TaskRepository): boolean {
+    return taskRepository.getAllForBoard(this.id).length === 0;
   }
 
   planeTask(title: string, plannedTime: Time): Task {
@@ -86,19 +89,19 @@ export class Board {
 
   attachTaskToEmployee(employeeId: Employee['id'], task: Task): void {
     this.assertBoardNotCompleted();
-    this.assertEmployeeExist(employeeId);
-    this.assertTaskAttachedToBoard(task);
+    this.assertAccess(employeeId, task);
     task.assignExecutor(employeeId);
   }
 
-  takeTaskInWork(freeEmployeesRegistry: FreeEmployeesRegistry, task: Task): void {
-    this.assertBoardNotCompleted();
-    this.assertTaskAttachedToBoard(task);
-    const employeeId = task.getExecutorId();
-    assert(employeeId, 'Task not attached');
+  private assertAccess(employeeId: Identity, task: Task) {
     this.assertEmployeeExist(employeeId);
-    assert(freeEmployeesRegistry.has(employeeId), 'Employee busy');
-    task.takeInWork();
+    this.assertTaskAttachedToBoard(task);
+  }
+
+  takeTaskInWorkBy(employeeId: Employee['id'], taskRepository: TaskRepository, task: Task): void {
+    this.assertBoardNotCompleted();
+    this.assertAccess(employeeId, task);
+    task.takeInWork(taskRepository);
   }
 
   private assertBoardNotCompleted(): void {
@@ -111,5 +114,11 @@ export class Board {
 
   private assertTaskAttachedToBoard(task: Task): void {
     assert(Identity.equals(this.id, task.boardId), 'Task not from this board');
+  }
+
+  cloneWithWorkingTime(): Board {
+    const board = new Board(this.projectId);
+    board.employeeWorkingTimeMap = new Map(this.employeeWorkingTimeMap);
+    return board;
   }
 }

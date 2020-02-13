@@ -2,9 +2,11 @@ import { Task } from './Task';
 import { Time } from './Time';
 import { restoreTime, spentHour } from 'src/utils/time-mocks';
 import { Percent } from './Percent';
+import { TaskRepository } from './TaskRepository';
 
 describe('Task Progress', () => {
   let workingTask: Task;
+  let taskRepository: TaskRepository;
 
   function getProgress(): number {
     return Math.min(
@@ -21,7 +23,8 @@ describe('Task Progress', () => {
     workingTask = new Task();
     workingTask.plannedTime = Time.fromHr(2);
     workingTask.assignExecutor(1);
-    workingTask.takeInWork();
+    taskRepository = { findWorkingTaskByExecutor: (_) => undefined } as TaskRepository;
+    workingTask.takeInWork(taskRepository);
   });
 
   afterEach(() => {

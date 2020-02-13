@@ -5,7 +5,6 @@ import { FileSystemTaskRepository } from './repositories/FileSystemTaskRepositor
 import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeRepository';
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
-import { ProjectService } from 'src/core/project/ProjectService';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 import { TimeReportService } from 'src/core/TimeReportService';
 import { Identity } from 'src/core/common/Identity';
@@ -15,14 +14,12 @@ const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
-const projectService = new ProjectService(projectRepository, boardRepository, employeeRepository);
 const timeReportService = new TimeReportService(taskRepository, tagRepository);
 const mainAppService = new MainAppService(
   projectRepository,
   boardRepository,
   taskRepository,
   employeeRepository,
-  projectService,
 );
 
 const hostname = '127.0.0.1';

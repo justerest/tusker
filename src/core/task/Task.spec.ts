@@ -1,11 +1,14 @@
 import { Task } from './Task';
 import { restoreTime, spentHour, spentMinutes } from 'src/utils/time-mocks';
+import { TaskRepository } from './TaskRepository';
 
 describe('Task', () => {
   let task: Task;
+  let taskRepository: TaskRepository;
 
   beforeEach(() => {
     task = new Task();
+    taskRepository = { findWorkingTaskByExecutor: (_) => undefined } as TaskRepository;
   });
 
   afterEach(() => {
@@ -24,7 +27,7 @@ describe('Task', () => {
     it('should change status to InProgress', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       expect(task.isInWork()).toBeTruthy();
     });
   });
@@ -33,7 +36,7 @@ describe('Task', () => {
     it('should sum time from work to complete', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       task.complete();
       expect(task.getSpentTime().toMin()).toBe(60);
@@ -42,11 +45,11 @@ describe('Task', () => {
     it('should sum time from work to complete with breaks', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       task.snooze();
       spentHour();
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       task.complete();
       expect(task.getSpentTime().toMin()).toBe(120);
@@ -55,7 +58,7 @@ describe('Task', () => {
     it('should calc spent time', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       expect(task.getSpentTime().toMin()).toBe(60);
     });
@@ -64,11 +67,11 @@ describe('Task', () => {
       const employeeId = 1;
       const secondEmployeeId = 2;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       task.vacateExecutor();
       task.assignExecutor(secondEmployeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentHour();
       expect(task.getSpentTime().toMin()).toBe(120);
     });
@@ -99,7 +102,7 @@ describe('Task', () => {
     it('should returns executor spent time', () => {
       const employeeId = 1;
       task.assignExecutor(employeeId);
-      task.takeInWork();
+      task.takeInWork(taskRepository);
       spentMinutes(30);
       expect(task.getSpentTimeFor(employeeId).toMin()).toEqual(30);
       expect(task.getSpentTimeFor(employeeId).toHr()).toEqual(0.5);
