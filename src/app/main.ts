@@ -103,12 +103,15 @@ server.post('/api/task/:boardId', (req, res) => {
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
   res.json(
-    taskAppService.startWorkOnTask(Identity.primary(req.params.employeeId), req.params.taskId),
+    taskAppService.startWorkOnTask(
+      Identity.primary(req.params.employeeId),
+      Identity.primary(req.params.taskId),
+    ),
   );
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(taskAppService.stopWorkOnTask(req.params.taskId));
+  res.json(taskAppService.snoozeTask(Identity.primary(req.params.taskId)));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {

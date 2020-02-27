@@ -33,21 +33,36 @@ export class TaskAppService {
       task.assignExecutor(employeeId);
       this.taskRepository.save(task);
     }
-    const timeTracker = this.taskManager.startWorkOnTask(employeeId, task);
+    const board = this.boardRepository.getById(task.boardId);
+    if (board.isTaskCompleted(taskId)) {
+      board.cancelTaskCompletion(taskId);
+      this.boardRepository.save(board);
+    }
+    const timeTracker = board.startWorkOnTask(employeeId, task, this.taskManager);
     this.timeTrackerRepository.save(timeTracker);
   }
 
   @Transactional()
-  stopWorkOnTask(taskId: Task['id']): void {
+  snoozeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
-    this.timeTrackerRepository.save(timeTracker);
+    const board = this.boardRepository.getById(task.boardId);
+    if (board.isTaskCompleted(taskId)) {
+      board.cancelTaskCompletion(taskId);
+      this.boardRepository.save(board);
+    } else {
+      const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
+      this.timeTrackerRepository.save(timeTracker);
+    }
   }
 
   @Transactional()
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     const board = this.boardRepository.getById(task.boardId);
+    if (this.taskManager.isTaskInWork(taskId)) {
+      const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
+      this.timeTrackerRepository.save(timeTracker);
+    }
     board.completeTask(task, this.taskManager);
     this.boardRepository.save(board);
   }

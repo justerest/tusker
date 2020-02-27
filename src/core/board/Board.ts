@@ -6,6 +6,8 @@ import { WorkingTime } from '../employee/WorkingTime';
 import { Identity } from '../common/Identity';
 import { Project } from '../project/Project';
 import { TaskManager } from '../task-manager/TaskManager';
+import { TimeTracker } from '../task-manager/TimeTracker';
+import { remove } from 'lodash';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -48,12 +50,12 @@ export class Board {
   }
 
   markAsCompleted(): void {
-    assert(!this.isCompleted(), 'Can not completed board twice');
+    assert(!this.isCompleted(), 'Can not complete board twice');
     this.completed = true;
   }
 
   addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
-    assert(!this.isCompleted());
+    this.assertBoardNotCompleted();
     this.employeeWorkingTimeMap.set(employeeId, workingTime);
   }
 
@@ -86,6 +88,20 @@ export class Board {
     return task;
   }
 
+  private assertBoardNotCompleted(): void {
+    assert(!this.isCompleted(), 'Can not work with completed board');
+  }
+
+  startWorkOnTask(employeeId: Employee['id'], task: Task, taskManager: TaskManager): TimeTracker {
+    this.assertBoardNotCompleted();
+    assert(!this.isTaskCompleted(task.id), 'Can not work on completed task');
+    return taskManager.startWorkOnTask(employeeId, task);
+  }
+
+  isTaskCompleted(taskId: Task['id']): boolean {
+    return this.completedTasks.includes(taskId);
+  }
+
   completeTask(task: Task, taskManager: TaskManager): void {
     assert(Identity.equals(task.boardId, this.id), 'Task not from board');
     assert(!this.isTaskCompleted(task.id), 'Task already completed');
@@ -93,12 +109,9 @@ export class Board {
     this.completedTasks.push(task.id);
   }
 
-  isTaskCompleted(taskId: Task['id']): boolean {
-    return this.completedTasks.includes(taskId);
-  }
-
-  private assertBoardNotCompleted(): void {
-    assert(!this.isCompleted(), 'Can not work with task of completed board');
+  cancelTaskCompletion(taskId: Task['id']): void {
+    assert(this.isTaskCompleted(taskId), 'Task not completed yet');
+    remove(this.completedTasks, (id) => Identity.equals(id, taskId));
   }
 
   cloneWithWorkingTime(): Board {
