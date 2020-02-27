@@ -5,7 +5,7 @@ import { Time } from '../Time';
 import { WorkingTime } from '../employee/WorkingTime';
 import { Identity } from '../common/Identity';
 import { Project } from '../project/Project';
-import { WorkLog } from '../work-log/WorkLog';
+import { TaskManager } from '../task-manager/TaskManager';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -31,13 +31,13 @@ export class Board {
 
   private employeeWorkingTimeMap: Map<Employee['id'], WorkingTime> = new Map();
 
+  private completedTasks: Task['id'][] = [];
+
   private completed = false;
 
   id: Identity = Identity.generate();
 
   projectId: Project['id'];
-
-  private workLog: WorkLog = new WorkLog();
 
   constructor(projectId: Project['id']) {
     this.projectId = projectId;
@@ -86,32 +86,19 @@ export class Board {
     return task;
   }
 
+  completeTask(task: Task, taskManager: TaskManager): void {
+    assert(Identity.equals(task.boardId, this.id), 'Task not from board');
+    assert(!this.isTaskCompleted(task.id), 'Task already completed');
+    assert(!taskManager.isTaskInWork(task.id), 'Can not complete working task');
+    this.completedTasks.push(task.id);
+  }
+
+  isTaskCompleted(taskId: Task['id']): boolean {
+    return this.completedTasks.includes(taskId);
+  }
+
   private assertBoardNotCompleted(): void {
     assert(!this.isCompleted(), 'Can not work with task of completed board');
-  }
-
-  private assertEmployeeExist(employeeId: Identity): void {
-    assert(this.employeeWorkingTimeMap.has(employeeId), 'Employee not exist on board');
-  }
-
-  private assertTaskAttachedToBoard(task: Task): void {
-    assert(Identity.equals(this.id, task.boardId), 'Task not from this board');
-  }
-
-  takeTaskInWork(employeeId: Employee['id'], task: Task): void {
-    this.assertBoardNotCompleted();
-    this.assertTaskAttachedToBoard(task);
-    this.assertEmployeeExist(employeeId);
-    this.workLog.logWorkStarted(employeeId, task);
-  }
-
-  stopWorkOnTask(task: Task): void {
-    this.workLog.stopWorkOnTask(task);
-  }
-
-  getTaskSpentTime(task: Task): Time {
-    this.assertTaskAttachedToBoard(task);
-    return this.workLog.getSpentTime(task.id);
   }
 
   cloneWithWorkingTime(): Board {

@@ -8,7 +8,6 @@ import { WorkingTime } from 'src/core/employee/WorkingTime';
 import { Project } from 'src/core/project/Project';
 import { ProjectRepository } from 'src/core/project/ProjectRepository';
 import { assert } from 'src/utils/assert';
-import { UseCase } from './UseCase';
 
 export class BoardAppService {
   constructor(
@@ -17,21 +16,19 @@ export class BoardAppService {
     private employeeRepository: EmployeeRepository,
   ) {}
 
-  @UseCase()
+  @Transactional()
   createProjectWithBoard(projectId: Project['id']): Project {
     const project = this.createProject(projectId);
     this.createNextBoard(project.id);
     return project;
   }
 
-  @Transactional()
   private createProject(projectId: Project['id']): Project {
     const project = Project.createProject(projectId, this.projectRepository);
     this.projectRepository.save(project);
     return project;
   }
 
-  @Transactional()
   private createNextBoard(projectId: Project['id']): Board {
     const project = this.projectRepository.getById(projectId);
     const board = project.createBoard(this.boardRepository);
@@ -39,13 +36,12 @@ export class BoardAppService {
     return board;
   }
 
-  @UseCase()
+  @Transactional()
   completeActiveBoardAndCreateNext(projectId: Project['id']): void {
     this.completeLastProjectBoard(projectId);
     this.createNextBoard(projectId);
   }
 
-  @Transactional()
   private completeLastProjectBoard(projectId: Project['id']): void {
     const board = this.boardRepository.findLastProjectBoard(projectId);
     assert(board, 'No boards in project');
@@ -53,14 +49,13 @@ export class BoardAppService {
     this.boardRepository.save(board);
   }
 
-  @UseCase()
+  @Transactional()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
     const employee = this.createEmployee(name, workingTime);
     this.addEmployeeToBoard(boardId, employee, workingTime);
   }
 
-  @Transactional()
   private createEmployee(name: string, workingTime: WorkingTime): Employee {
     const employee = new Employee();
     employee.name = name;
@@ -69,7 +64,6 @@ export class BoardAppService {
     return employee;
   }
 
-  @Transactional()
   private addEmployeeToBoard(
     boardId: Board['id'],
     employeeId: Employee['id'],

@@ -8,14 +8,23 @@ import { FileSystemProjectRepository } from './repositories/FileSystemProjectRep
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
 import { Identity } from 'src/core/common/Identity';
 import { TaskAppService } from './TaskAppService';
+import { TaskManager } from 'src/core/task-manager/TaskManager';
+import { FileSystemTimeTrackerRepository } from './repositories/FileSystemTimeTrackerRepository';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
+const timeTrackerRepository = new FileSystemTimeTrackerRepository();
+const taskManager = new TaskManager(timeTrackerRepository);
 const boardAppService = new BoardAppService(projectRepository, boardRepository, employeeRepository);
-const taskAppService = new TaskAppService(boardRepository, taskRepository);
+const taskAppService = new TaskAppService(
+  boardRepository,
+  taskRepository,
+  taskManager,
+  timeTrackerRepository,
+);
 
 const hostname = '127.0.0.1';
 const port = 3000;
@@ -64,8 +73,14 @@ server.get('/api/task/:boardId', (req, res) => {
   res.json(
     taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
       ...task,
-      // TODO: status
-      spentTime: board.getTaskSpentTime(task).toMin(),
+      status: board.isTaskCompleted(task.id)
+        ? 'Completed'
+        : taskManager.isTaskInWork(task.id)
+        ? 'InWork'
+        : taskManager.getFullTaskSpentTime(task.id).toMs() > 0
+        ? 'Snoozed'
+        : 'Planned',
+      spentTime: taskManager.getFullTaskSpentTime(task.id).toMin(),
       plannedTime: task.plannedTime.toMin(),
       neededTime: task.getNeededTime().toMin(),
       employeeName: task.getExecutorIds()
@@ -82,7 +97,7 @@ server.post('/api/task/:boardId', (req, res) => {
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
   res.json(
-    taskAppService.takeTaskInWork(Identity.primary(req.params.employeeId), req.params.taskId),
+    taskAppService.startWorkOnTask(Identity.primary(req.params.employeeId), req.params.taskId),
   );
 });
 

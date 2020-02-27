@@ -1,9 +1,16 @@
 import { assert } from '../../utils/assert';
+import { Employee } from '../employee/Employee';
+import { Task } from '../task/Task';
 
 export class TimeTracker {
   private spentTime: number = 0;
   private inWorkSince: number = 0;
   private trackingOn: boolean = false;
+
+  employeeId!: Employee['id'];
+  taskId!: Task['id'];
+
+  constructor() {}
 
   isTrackingOn(): boolean {
     return this.trackingOn;

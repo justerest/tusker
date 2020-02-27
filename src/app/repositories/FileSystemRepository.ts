@@ -67,11 +67,15 @@ export abstract class FileSystemRepository<T extends { id: Identity }> {
     assert(this.cache, 'No cache');
     this.hasChanges = true;
     const entities = this.cache;
-    const index = entities.findIndex((t) => Identity.equals(t.id, entity.id));
+    const index = entities.findIndex((t) => this.equals(t, entity));
     if (index === -1) {
       entities.push(entity);
     } else {
       entities.splice(index, 1, entity);
     }
+  }
+
+  protected equals(entity1: T, entity2: T): unknown {
+    return Identity.equals(entity1.id, entity2.id);
   }
 }

@@ -7,9 +7,16 @@ import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Board } from 'src/core/board/Board';
 import { Tag } from 'src/core/tag/Tag';
+import { TaskManager } from 'src/core/task-manager/TaskManager';
+import { TimeTrackerRepository } from 'src/core/task-manager/TimeTrackerRepository';
 
 export class TaskAppService {
-  constructor(private boardRepository: BoardRepository, private taskRepository: TaskRepository) {}
+  constructor(
+    private boardRepository: BoardRepository,
+    private taskRepository: TaskRepository,
+    private taskManager: TaskManager,
+    private timeTrackerRepository: TimeTrackerRepository,
+  ) {}
 
   @Transactional()
   createTask(boardId: Board['id'], title: string, plannedTimeInHr: number): void {
@@ -19,33 +26,31 @@ export class TaskAppService {
   }
 
   @Transactional()
-  takeTaskInWork(employeeId: Employee['id'], taskId: Task['id']): void {
+  startWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    const board = this.boardRepository.getById(task.boardId);
-    board.takeTaskInWork(employeeId, task);
-    this.boardRepository.save(board);
+    const timeTracker = this.taskManager.startWorkOnTask(employeeId, task);
+    this.timeTrackerRepository.save(timeTracker);
   }
 
   @Transactional()
   stopWorkOnTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    const board = this.boardRepository.getById(task.boardId);
-    board.stopWorkOnTask(task);
-    this.boardRepository.save(board);
+    const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
+    this.timeTrackerRepository.save(timeTracker);
   }
 
   @Transactional()
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    // TODO: task.complete();
-    this.taskRepository.save(task);
+    const board = this.boardRepository.getById(task.boardId);
+    board.completeTask(task, this.taskManager);
+    this.boardRepository.save(board);
   }
 
   @Transactional()
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
-    const board = this.boardRepository.getById(task.boardId);
-    const taskSpentTime = board.getTaskSpentTime(task);
+    const taskSpentTime = this.taskManager.getFullTaskSpentTime(task.id);
     task.setNeededTime(Time.fromMs(taskSpentTime.toMs() / Percent.fromInt(progress).toFloat()));
     this.taskRepository.save(task);
   }
