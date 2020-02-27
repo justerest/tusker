@@ -3,17 +3,21 @@ import { assert } from '../../utils/assert';
 export class TimeTracker {
   private spentTime: number = 0;
   private inWorkSince: number = 0;
-  private isTrackingOn: boolean = false;
+  private trackingOn: boolean = false;
+
+  isTrackingOn(): boolean {
+    return this.trackingOn;
+  }
 
   start(): void {
-    assert(!this.isTrackingOn, 'Tracker already started');
-    this.isTrackingOn = true;
+    assert(!this.trackingOn, 'Tracker already started');
+    this.trackingOn = true;
     this.inWorkSince = Date.now();
   }
 
   stop(): void {
-    assert(this.isTrackingOn, 'Tracker not started yet');
-    this.isTrackingOn = false;
+    assert(this.trackingOn, 'Tracker not started yet');
+    this.trackingOn = false;
     this.spentTime += this.getSpentTimeIncrement();
   }
 
@@ -22,6 +26,6 @@ export class TimeTracker {
   }
 
   getSpentTime(): number {
-    return this.spentTime + (this.isTrackingOn ? this.getSpentTimeIncrement() : 0);
+    return this.spentTime + (this.trackingOn ? this.getSpentTimeIncrement() : 0);
   }
 }

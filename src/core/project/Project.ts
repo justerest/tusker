@@ -3,7 +3,6 @@ import { Board } from '../board/Board';
 import { assert } from 'src/utils/assert';
 import { ProjectRepository } from './ProjectRepository';
 import { BoardRepository } from '../board/BoardRepository';
-import { TaskRepository } from '../task/TaskRepository';
 
 export class Project {
   static createProject(projectId: Project['id'], projectRepository: ProjectRepository): Project {
@@ -25,10 +24,10 @@ export class Project {
 
   constructor() {}
 
-  createBoard(boardRepository: BoardRepository, taskRepository: TaskRepository): Board {
+  createBoard(boardRepository: BoardRepository): Board {
     const lastBoard = boardRepository.findLastProjectBoard(this.id);
     if (lastBoard) {
-      assert(!lastBoard.isEmpty(taskRepository), 'Many empty boards in project');
+      assert(!lastBoard.isEmpty(), 'Many empty boards in project');
       assert(lastBoard.isCompleted(), 'Many active boards in project');
       return lastBoard.cloneWithWorkingTime();
     }

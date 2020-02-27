@@ -7,8 +7,6 @@ import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Board } from 'src/core/board/Board';
 import { Tag } from 'src/core/tag/Tag';
-import { Identity } from 'src/core/common/Identity';
-import { UseCase } from './UseCase';
 
 export class TaskAppService {
   constructor(private boardRepository: BoardRepository, private taskRepository: TaskRepository) {}
@@ -20,54 +18,35 @@ export class TaskAppService {
     this.taskRepository.save(task);
   }
 
-  @UseCase()
-  takeTaskInWorkForce(employeeId: Employee['id'], taskId: Task['id']): void {
-    const task = this.taskRepository.getById(taskId);
-    const currentEmployeeWorkingTask = this.taskRepository.findWorkingTaskByExecutor(employeeId);
-    if (currentEmployeeWorkingTask && !Identity.equals(currentEmployeeWorkingTask.id, task.id)) {
-      this.snoozeTaskOrCancelCompletion(currentEmployeeWorkingTask.id);
-    }
-    this.takeTaskInWorkBy(employeeId, task);
-  }
-
   @Transactional()
-  private takeTaskInWorkBy(employeeId: Employee['id'], task: Task): void {
+  takeTaskInWork(employeeId: Employee['id'], taskId: Task['id']): void {
+    const task = this.taskRepository.getById(taskId);
     const board = this.boardRepository.getById(task.boardId);
-    const isTaskAttachedToThisEmployee = Identity.equals(employeeId, task.getExecutorId());
-    const isTaskAttachedToAnotherEmployee = task.getExecutorId() && !isTaskAttachedToThisEmployee;
-    if (isTaskAttachedToAnotherEmployee) {
-      task.vacateExecutor();
-    }
-    if (!isTaskAttachedToThisEmployee) {
-      board.attachTaskToEmployee(employeeId, task);
-    }
-    board.takeTaskInWork(task, this.taskRepository);
-    this.taskRepository.save(task);
+    board.takeTaskInWork(employeeId, task);
+    this.boardRepository.save(board);
   }
 
-  @UseCase()
   @Transactional()
-  snoozeTaskOrCancelCompletion(taskId: Task['id']): void {
+  stopWorkOnTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    if (task.isCompleted()) {
-      task.cancelCompletion();
-    } else {
-      task.snooze();
-    }
-    this.taskRepository.save(task);
+    const board = this.boardRepository.getById(task.boardId);
+    board.stopWorkOnTask(task);
+    this.boardRepository.save(board);
   }
 
   @Transactional()
   completeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
-    task.complete();
+    // TODO: task.complete();
     this.taskRepository.save(task);
   }
 
   @Transactional()
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
-    task.commitProgress(Percent.fromInt(progress));
+    const board = this.boardRepository.getById(task.boardId);
+    const taskSpentTime = board.getTaskSpentTime(task);
+    task.setNeededTime(Time.fromMs(taskSpentTime.toMs() / Percent.fromInt(progress).toFloat()));
     this.taskRepository.save(task);
   }
 

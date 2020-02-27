@@ -21,14 +21,8 @@ export class TrackerMap {
 
   private map: Map<Employee['id'], TimeTracker> = new Map();
 
-  addEmployee(employeeId: Employee['id']): void {
-    if (!this.map.has(employeeId)) {
-      this.map.set(employeeId, new TimeTracker());
-    }
-  }
-
   startTrackerFor(employeeId: Employee['id']): void {
-    this.get(employeeId).start();
+    this.getOrCreate(employeeId).start();
   }
 
   stopTrackerFor(employeeId: Employee['id']): void {
@@ -43,8 +37,21 @@ export class TrackerMap {
     return this.get(employeeId).getSpentTime();
   }
 
-  getAllEmployeeIds(): Employee['id'][] {
+  stopAllTrackers(): void {
+    [...this.map.values()]
+      .filter((tracker) => tracker.isTrackingOn())
+      .forEach((tracker) => tracker.stop());
+  }
+
+  getAllExecutors(): Employee['id'][] {
     return [...this.map.keys()];
+  }
+
+  private getOrCreate(employeeId: Employee['id']): TimeTracker {
+    if (!this.map.has(employeeId)) {
+      this.map.set(employeeId, new TimeTracker());
+    }
+    return this.map.get(employeeId) as TimeTracker;
   }
 
   private get(employeeId: Employee['id']): TimeTracker {

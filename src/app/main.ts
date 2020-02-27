@@ -16,12 +16,7 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const timeReportAppService = new TimeReportAppService(taskRepository, tagRepository);
-const boardAppService = new BoardAppService(
-  projectRepository,
-  boardRepository,
-  taskRepository,
-  employeeRepository,
-);
+const boardAppService = new BoardAppService(projectRepository, boardRepository, employeeRepository);
 const taskAppService = new TaskAppService(boardRepository, taskRepository);
 
 const hostname = '127.0.0.1';
@@ -67,14 +62,15 @@ server.post('/api/employee/:boardId', (req, res) => {
 });
 
 server.get('/api/task/:boardId', (req, res) => {
+  const board = boardRepository.getById(req.params.boardId);
   res.json(
     taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
       ...task,
-      spentTime: task.getSpentTime().toMin(),
+      spentTime: board.getTaskSpentTime(task).toMin(),
       plannedTime: task.plannedTime.toMin(),
       neededTime: task.getNeededTime().toMin(),
-      employeeName: task.getExecutorId()
-        ? employeeRepository.getById(task.getExecutorId()!).name
+      employeeName: task.getExecutorIds()
+        ? employeeRepository.getById(task.getExecutorIds()!).name
         : '',
       tag: task.tagId,
     })),
@@ -87,12 +83,12 @@ server.post('/api/task/:boardId', (req, res) => {
 
 server.post('/api/takeTaskInWork/:taskId/:employeeId', (req, res) => {
   res.json(
-    taskAppService.takeTaskInWorkForce(Identity.primary(req.params.employeeId), req.params.taskId),
+    taskAppService.takeTaskInWork(Identity.primary(req.params.employeeId), req.params.taskId),
   );
 });
 
 server.post('/api/snoozeTask/:taskId/', (req, res) => {
-  res.json(taskAppService.snoozeTaskOrCancelCompletion(req.params.taskId));
+  res.json(taskAppService.stopWorkOnTask(req.params.taskId));
 });
 
 server.post('/api/reportTaskProgress/:taskId/', (req, res) => {

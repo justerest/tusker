@@ -22,7 +22,7 @@ export class FileSystemTaskRepository extends FileSystemRepository<Task> impleme
 
   findWorkingTaskByExecutor(employeeId: Employee['id']): Task | undefined {
     return this.getAll().find(
-      (task) => Identity.equals(employeeId, task.getExecutorId()) && task.isInWork(),
+      (task) => Identity.equals(employeeId, task.getExecutorIds()) && task.isInWork(),
     );
   }
 }

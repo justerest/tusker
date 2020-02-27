@@ -5,7 +5,7 @@ import { Time } from '../task/Time';
 import { WorkingTime } from '../employee/WorkingTime';
 import { Identity } from '../common/Identity';
 import { Project } from '../project/Project';
-import { TaskRepository } from '../task/TaskRepository';
+import { WorkLog } from '../WorkLog';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -33,8 +33,13 @@ export class Board {
 
   private completed = false;
 
+  private empty = true;
+
   id: Identity = Identity.generate();
+
   projectId: Project['id'];
+
+  private workLog: WorkLog = new WorkLog();
 
   constructor(projectId: Project['id']) {
     this.projectId = projectId;
@@ -44,13 +49,13 @@ export class Board {
     return this.completed;
   }
 
-  markAsCompleted(taskRepository: TaskRepository): void {
-    assert(!this.isEmpty(taskRepository), 'Can not complete empty board');
+  markAsCompleted(): void {
+    assert(!this.isEmpty(), 'Can not complete empty board');
     this.completed = true;
   }
 
-  isEmpty(taskRepository: TaskRepository): boolean {
-    return taskRepository.getAllForBoard(this.id).length === 0;
+  isEmpty(): boolean {
+    return this.empty;
   }
 
   addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
@@ -79,19 +84,12 @@ export class Board {
   }
 
   planeTask(title: string, plannedTime: Time): Task {
-    assert(!this.isCompleted());
+    this.assertBoardNotCompleted();
     const task = new Task();
     task.boardId = this.id;
     task.title = title;
     task.plannedTime = plannedTime;
     return task;
-  }
-
-  attachTaskToEmployee(employeeId: Employee['id'], task: Task): void {
-    this.assertBoardNotCompleted();
-    this.assertEmployeeExist(employeeId);
-    this.assertTaskAttachedToBoard(task);
-    task.assignExecutor(employeeId);
   }
 
   private assertBoardNotCompleted(): void {
@@ -106,14 +104,21 @@ export class Board {
     assert(Identity.equals(this.id, task.boardId), 'Task not from this board');
   }
 
-  takeTaskInWork(task: Task, taskRepository: TaskRepository): void {
+  takeTaskInWork(employeeId: Employee['id'], task: Task): void {
     this.assertBoardNotCompleted();
     this.assertTaskAttachedToBoard(task);
-    const employeeId = task.getExecutorId();
-    if (employeeId) {
-      this.assertEmployeeExist(employeeId);
-    }
-    task.takeInWork(taskRepository);
+    this.assertEmployeeExist(employeeId);
+    this.workLog.logWorkStarted(employeeId, task);
+    this.empty = false;
+  }
+
+  stopWorkOnTask(task: Task): void {
+    this.workLog.stopWorkOnTask(task);
+  }
+
+  getTaskSpentTime(task: Task): Time {
+    this.assertTaskAttachedToBoard(task);
+    return this.workLog.getSpentTime(task.id);
   }
 
   cloneWithWorkingTime(): Board {

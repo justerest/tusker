@@ -1,4 +1,3 @@
-import { TaskRepository } from 'src/core/task/TaskRepository';
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
 import { Time } from 'src/core/task/Time';
@@ -15,7 +14,6 @@ export class BoardAppService {
   constructor(
     private projectRepository: ProjectRepository,
     private boardRepository: BoardRepository,
-    private taskRepository: TaskRepository,
     private employeeRepository: EmployeeRepository,
   ) {}
 
@@ -36,7 +34,7 @@ export class BoardAppService {
   @Transactional()
   private createNextBoard(projectId: Project['id']): Board {
     const project = this.projectRepository.getById(projectId);
-    const board = project.createBoard(this.boardRepository, this.taskRepository);
+    const board = project.createBoard(this.boardRepository);
     this.boardRepository.save(board);
     return board;
   }
@@ -51,7 +49,7 @@ export class BoardAppService {
   private completeLastProjectBoard(projectId: Project['id']): void {
     const board = this.boardRepository.findLastProjectBoard(projectId);
     assert(board, 'No boards in project');
-    board.markAsCompleted(this.taskRepository);
+    board.markAsCompleted();
     this.boardRepository.save(board);
   }
 
