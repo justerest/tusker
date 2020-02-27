@@ -18,59 +18,43 @@ export class BoardAppService {
 
   @Transactional()
   createProjectWithBoard(projectId: Project['id']): Project {
-    const project = this.createProject(projectId);
-    this.createNextBoard(project.id);
-    return project;
-  }
-
-  private createProject(projectId: Project['id']): Project {
     const project = Project.createProject(projectId, this.projectRepository);
-    this.projectRepository.save(project);
-    return project;
-  }
-
-  private createNextBoard(projectId: Project['id']): Board {
-    const project = this.projectRepository.getById(projectId);
     const board = project.createBoard(this.boardRepository);
+    this.projectRepository.save(project);
     this.boardRepository.save(board);
-    return board;
+    return project;
   }
 
   @Transactional()
   completeActiveBoardAndCreateNext(projectId: Project['id']): void {
-    this.completeLastProjectBoard(projectId);
-    this.createNextBoard(projectId);
+    const prevBoard = this.completeLastProjectBoard(projectId);
+		const project = this.projectRepository.getById(projectId);
+    const nextBoard = project.createBoard(this.boardRepository);
+    this.boardRepository.save(prevBoard);
+    this.boardRepository.save(nextBoard);
   }
 
-  private completeLastProjectBoard(projectId: Project['id']): void {
+  private completeLastProjectBoard(projectId: Project['id']): Board {
     const board = this.boardRepository.findLastProjectBoard(projectId);
     assert(board, 'No boards in project');
     board.markAsCompleted();
-    this.boardRepository.save(board);
+    return board;
   }
 
   @Transactional()
   addEmployee(boardId: Board['id'], name: string, startAtHr: number, endAtHr: number): void {
     const workingTime = new WorkingTime(Time.fromHr(startAtHr), Time.fromHr(endAtHr));
     const employee = this.createEmployee(name, workingTime);
-    this.addEmployeeToBoard(boardId, employee, workingTime);
+    const board = this.boardRepository.getById(boardId);
+    board.addEmployee(employee.id, workingTime);
+    this.boardRepository.save(board);
+    this.employeeRepository.save(employee);
   }
 
   private createEmployee(name: string, workingTime: WorkingTime): Employee {
     const employee = new Employee();
     employee.name = name;
     employee.workingTime = workingTime;
-    this.employeeRepository.save(employee);
     return employee;
-  }
-
-  private addEmployeeToBoard(
-    boardId: Board['id'],
-    employeeId: Employee['id'],
-    workingTime: WorkingTime,
-  ): void {
-    const board = this.boardRepository.getById(boardId);
-    board.addEmployee(employeeId, workingTime);
-    this.boardRepository.save(board);
   }
 }

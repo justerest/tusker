@@ -54,12 +54,6 @@ describe(TaskManager.name, () => {
     expect(timeTracker.isTrackingOn()).toBeFalsy();
   });
 
-  it('+getSpentTime() should returns Time', () => {
-    const employeeId = Identity.generate();
-    const time = taskManager.getSpentTime(employeeId, task.id);
-    expect(time.toMs()).toBe(0);
-  });
-
   it('+getFullTaskSpentTime() should returns Time', () => {
     const time = taskManager.getFullTaskSpentTime(task.id);
     expect(time.toMs()).toBe(0);

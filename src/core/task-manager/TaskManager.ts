@@ -11,19 +11,33 @@ export class TaskManager {
   startWorkOnTask(employeeId: Employee['id'], task: Task): TimeTracker {
     assert(task.getExecutorIds().includes(employeeId), 'Task not assigned to employee');
     this.assertEmployeeFree(employeeId);
-    const timeTracker = this.timeTrackerRepository.find(employeeId, task.id) ?? new TimeTracker();
+    const timeTracker =
+      this.timeTrackerRepository.find(employeeId, task.id) ??
+      this.createTracker(employeeId, task.id);
     timeTracker.start();
     return timeTracker;
+  }
+
+  private assertEmployeeFree(employeeId: Employee['id']) {
+    assert(
+      this.timeTrackerRepository
+        .getByEmployee(employeeId)
+        .every((tracker) => !tracker.isTrackingOn()),
+      'Employee is busy',
+    );
+  }
+
+  private createTracker(employeeId: Employee['id'], taskId: Task['id']): TimeTracker {
+    const tracker = new TimeTracker();
+    tracker.employeeId = employeeId;
+    tracker.taskId = taskId;
+    return tracker;
   }
 
   stopWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): TimeTracker {
     const timeTracker = this.timeTrackerRepository.get(employeeId, taskId);
     timeTracker.stop();
     return timeTracker;
-  }
-
-  getSpentTime(employeeId: Employee['id'], taskId: Task['id']): Time {
-    return Time.fromMs(this.timeTrackerRepository.find(employeeId, taskId)?.getSpentTime() ?? 0);
   }
 
   getFullTaskSpentTime(taskId: Task['id']): Time {
@@ -38,14 +52,5 @@ export class TaskManager {
     return this.timeTrackerRepository
       .getAllByTask(taskId)
       .some((tracker) => tracker.isTrackingOn());
-  }
-
-  private assertEmployeeFree(employeeId: Employee['id']) {
-    assert(
-      this.timeTrackerRepository
-        .getByEmployee(employeeId)
-        .every((tracker) => !tracker.isTrackingOn()),
-      'Employee is busy',
-    );
   }
 }

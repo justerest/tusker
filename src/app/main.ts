@@ -10,6 +10,7 @@ import { Identity } from 'src/core/common/Identity';
 import { TaskAppService } from './TaskAppService';
 import { TaskManager } from 'src/core/task-manager/TaskManager';
 import { FileSystemTimeTrackerRepository } from './repositories/FileSystemTimeTrackerRepository';
+import { TimeReportAppService } from './TimeReportAppService';
 
 const projectRepository = new FileSystemProjectRepository();
 const boardRepository = new FileSystemBoardRepository();
@@ -23,6 +24,11 @@ const taskAppService = new TaskAppService(
   boardRepository,
   taskRepository,
   taskManager,
+  timeTrackerRepository,
+);
+const timeReportAppService = new TimeReportAppService(
+  taskRepository,
+  tagRepository,
   timeTrackerRepository,
 );
 
@@ -73,18 +79,18 @@ server.get('/api/task/:boardId', (req, res) => {
   res.json(
     taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
       ...task,
-      status: board.isTaskCompleted(task.id)
-        ? 'Completed'
-        : taskManager.isTaskInWork(task.id)
+      status: taskManager.isTaskInWork(task.id)
         ? 'InWork'
+        : board.isTaskCompleted(task.id)
+        ? 'Completed'
         : taskManager.getFullTaskSpentTime(task.id).toMs() > 0
         ? 'Snoozed'
         : 'Planned',
       spentTime: taskManager.getFullTaskSpentTime(task.id).toMin(),
       plannedTime: task.plannedTime.toMin(),
       neededTime: task.getNeededTime().toMin(),
-      employeeName: task.getExecutorIds()
-        ? employeeRepository.getById(task.getExecutorIds()!).name
+      employeeName: task.getExecutorIds().length
+        ? employeeRepository.getById(task.getExecutorIds()[0]).name
         : '',
       tag: task.tagId,
     })),
@@ -131,6 +137,18 @@ server.get('/api/tag', (_, res) => {
 
 server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
   res.json(taskAppService.setTaskTag(req.params.taskId, req.params.tagId));
+});
+
+server.get('/api/report/:employeeId', (req, res) => {
+  res.json(
+    timeReportAppService
+      .getTimeReports(Identity.primary(req.params.employeeId))
+      .map((timeReport) => ({
+        tag: timeReport.tag?.id,
+        date: timeReport.date.toDate(),
+        spentTime: timeReport.spentTime.toHr(),
+      })),
+  );
 });
 
 server.listen(port, hostname, () => console.log(`Server running at http://${hostname}:${port}/`));

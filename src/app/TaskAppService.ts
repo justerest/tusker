@@ -9,6 +9,7 @@ import { Board } from 'src/core/board/Board';
 import { Tag } from 'src/core/tag/Tag';
 import { TaskManager } from 'src/core/task-manager/TaskManager';
 import { TimeTrackerRepository } from 'src/core/task-manager/TimeTrackerRepository';
+import { Identity } from 'src/core/common/Identity';
 
 export class TaskAppService {
   constructor(
@@ -28,6 +29,10 @@ export class TaskAppService {
   @Transactional()
   startWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
+    if (!task.getExecutorIds().includes(Identity.primary(employeeId))) {
+      task.assignExecutor(employeeId);
+      this.taskRepository.save(task);
+    }
     const timeTracker = this.taskManager.startWorkOnTask(employeeId, task);
     this.timeTrackerRepository.save(timeTracker);
   }
