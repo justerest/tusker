@@ -6,7 +6,6 @@ import { FileSystemEmployeeRepository } from './repositories/FileSystemEmployeeR
 import { FileSystemBoardRepository } from './repositories/FileSystemBoardRepository';
 import { FileSystemProjectRepository } from './repositories/FileSystemProjectRepository';
 import { FileSystemTagRepository } from './repositories/FileSystemTagRepository';
-import { TimeReportAppService } from 'src/app/TimeReportAppService';
 import { Identity } from 'src/core/common/Identity';
 import { TaskAppService } from './TaskAppService';
 
@@ -15,7 +14,6 @@ const boardRepository = new FileSystemBoardRepository();
 const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
-const timeReportAppService = new TimeReportAppService(taskRepository, tagRepository);
 const boardAppService = new BoardAppService(projectRepository, boardRepository, employeeRepository);
 const taskAppService = new TaskAppService(boardRepository, taskRepository);
 
@@ -66,6 +64,7 @@ server.get('/api/task/:boardId', (req, res) => {
   res.json(
     taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
       ...task,
+      // TODO: status
       spentTime: board.getTaskSpentTime(task).toMin(),
       plannedTime: task.plannedTime.toMin(),
       neededTime: task.getNeededTime().toMin(),
@@ -113,18 +112,6 @@ server.post('/api/board/:projectId', (req, res) => {
 
 server.get('/api/tag', (_, res) => {
   res.json(tagRepository.getAll());
-});
-
-server.get('/api/report/:employeeId', (req, res) => {
-  res.json(
-    timeReportAppService
-      .getTimeReports(Identity.primary(req.params.employeeId))
-      .map((timeReport) => ({
-        tag: timeReport.tag?.id,
-        date: timeReport.date.toDate(),
-        spentTime: timeReport.spentTime.toHr(),
-      })),
-  );
 });
 
 server.post('/api/setTaskTag/:taskId/:tagId', (req, res) => {
