@@ -1,5 +1,5 @@
 import { WorkingTime } from './WorkingTime';
-import { Time } from '../task/Time';
+import { Time } from '../Time';
 import { restoreTime } from 'src/utils/time-mocks';
 
 describe(WorkingTime.name, () => {

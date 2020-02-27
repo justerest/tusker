@@ -1,8 +1,8 @@
 import { TaskRepository } from 'src/core/task/TaskRepository';
 import { Task } from 'src/core/task/Task';
 import { Employee } from 'src/core/employee/Employee';
-import { Time } from 'src/core/task/Time';
-import { Percent } from 'src/core/task/Percent';
+import { Time } from 'src/core/Time';
+import { Percent } from 'src/core/Percent';
 import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Board } from 'src/core/board/Board';

@@ -27,7 +27,6 @@ export class Project {
   createBoard(boardRepository: BoardRepository): Board {
     const lastBoard = boardRepository.findLastProjectBoard(this.id);
     if (lastBoard) {
-      assert(!lastBoard.isEmpty(), 'Many empty boards in project');
       assert(lastBoard.isCompleted(), 'Many active boards in project');
       return lastBoard.cloneWithWorkingTime();
     }

@@ -1,4 +1,4 @@
-import { Time } from '../core/task/Time';
+import { Time } from '../core/Time';
 
 const now = Date.now;
 

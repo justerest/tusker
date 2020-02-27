@@ -1,6 +1,6 @@
 import { WorkLog } from './WorkLog';
-import { Task } from './task/Task';
-import { Identity } from './common/Identity';
+import { Task } from '../task/Task';
+import { Identity } from '../common/Identity';
 import { spentHour, restoreTime } from 'src/utils/time-mocks';
 
 describe(WorkLog.name, () => {

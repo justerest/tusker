@@ -1,4 +1,4 @@
-import { Time } from '../task/Time';
+import { Time } from '../Time';
 import { assert } from 'src/utils/assert';
 
 export class WorkingTime {

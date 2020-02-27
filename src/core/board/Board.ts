@@ -1,11 +1,11 @@
 import { Employee } from '../employee/Employee';
 import { Task } from '../task/Task';
 import { assert } from 'src/utils/assert';
-import { Time } from '../task/Time';
+import { Time } from '../Time';
 import { WorkingTime } from '../employee/WorkingTime';
 import { Identity } from '../common/Identity';
 import { Project } from '../project/Project';
-import { WorkLog } from '../WorkLog';
+import { WorkLog } from '../work-log/WorkLog';
 
 export class Board {
   static serialize(board: Board): unknown {
@@ -33,8 +33,6 @@ export class Board {
 
   private completed = false;
 
-  private empty = true;
-
   id: Identity = Identity.generate();
 
   projectId: Project['id'];
@@ -50,12 +48,8 @@ export class Board {
   }
 
   markAsCompleted(): void {
-    assert(!this.isEmpty(), 'Can not complete empty board');
+    assert(!this.isCompleted(), 'Can not completed board twice');
     this.completed = true;
-  }
-
-  isEmpty(): boolean {
-    return this.empty;
   }
 
   addEmployee(employeeId: Employee['id'], workingTime: WorkingTime): void {
@@ -109,7 +103,6 @@ export class Board {
     this.assertTaskAttachedToBoard(task);
     this.assertEmployeeExist(employeeId);
     this.workLog.logWorkStarted(employeeId, task);
-    this.empty = false;
   }
 
   stopWorkOnTask(task: Task): void {

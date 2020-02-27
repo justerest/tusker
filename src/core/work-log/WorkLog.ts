@@ -1,8 +1,8 @@
-import { Employee } from './employee/Employee';
-import { Task } from './task/Task';
-import { assert } from '../utils/assert';
-import { TrackerMap } from './task/TrackerMap';
-import { Time } from './task/Time';
+import { Employee } from '../employee/Employee';
+import { Task } from '../task/Task';
+import { assert } from '../../utils/assert';
+import { TrackerMap } from './TrackerMap';
+import { Time } from '../Time';
 
 export class WorkLog {
   private trackerMap: Map<Task['id'], TrackerMap> = new Map();

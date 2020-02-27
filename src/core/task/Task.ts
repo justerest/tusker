@@ -1,7 +1,7 @@
 import { assert } from '../../utils/assert';
 import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
-import { Time } from './Time';
+import { Time } from '../Time';
 import { Board } from '../board/Board';
 import { Tag } from '../tag/Tag';
 

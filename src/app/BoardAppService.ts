@@ -1,6 +1,6 @@
 import { Employee } from 'src/core/employee/Employee';
 import { EmployeeRepository } from 'src/core/employee/EmployeeRepository';
-import { Time } from 'src/core/task/Time';
+import { Time } from 'src/core/Time';
 import { Transactional } from './repositories/FileSystemTransactionManager';
 import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Board } from 'src/core/board/Board';
