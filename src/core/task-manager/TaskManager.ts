@@ -24,12 +24,13 @@ export class TaskManager {
   }
 
   private assertEmployeeFree(employeeId: Employee['id']) {
-    assert(
-      this.timeTrackerRepository
-        .getByEmployee(employeeId)
-        .every((tracker) => !tracker.isTrackingOn()),
-      'Employee is busy',
-    );
+    assert(!this.getEmployeeWorkingTaskId(employeeId), 'Employee is busy');
+  }
+
+  getEmployeeWorkingTaskId(employeeId: Employee['id']): Task['id'] | undefined {
+    return this.timeTrackerRepository
+      .getByEmployee(employeeId)
+      .find((tracker) => tracker.isTrackingOn())?.taskId;
   }
 
   private createTracker(employeeId: Employee['id'], taskId: Task['id']): TimeTracker {

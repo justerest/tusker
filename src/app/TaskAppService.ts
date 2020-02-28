@@ -36,6 +36,10 @@ export class TaskAppService {
       board.cancelTaskCompletion(taskId);
       this.boardRepository.save(board);
     }
+    const currEmployeeTask = this.taskManager.getEmployeeWorkingTaskId(employeeId);
+    if (currEmployeeTask) {
+      this.taskManager.stopWorkOnTask(employeeId, currEmployeeTask);
+    }
     board.startWorkOnTask(employeeId, task, this.taskManager);
   }
 
