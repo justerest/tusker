@@ -7,6 +7,8 @@ import { Time } from '../Time';
 import { TaskRepository } from '../task/TaskRepository';
 
 export class TaskManager {
+  static instance: TaskManager;
+
   constructor(
     private timeTrackerRepository: TimeTrackerRepository,
     private taskRepository: TaskRepository,

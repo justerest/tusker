@@ -18,7 +18,7 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const timeTrackerRepository = new FileSystemTimeTrackerRepository();
-const taskManager = new TaskManager(timeTrackerRepository, taskRepository);
+const taskManager = (TaskManager.instance = new TaskManager(timeTrackerRepository, taskRepository));
 const boardAppService = new BoardAppService(projectRepository, boardRepository, employeeRepository);
 const taskAppService = new TaskAppService(boardRepository, taskRepository, taskManager);
 const timeReportAppService = new TimeReportAppService(
@@ -78,7 +78,7 @@ server.get('/api/task/:boardId', (req, res) => {
         ...task,
         status: taskManager.isTaskInWork(task.id)
           ? 'InWork'
-          : board.isTaskCompleted(task.id)
+          : board.isTaskCompleted(task)
           ? 'Completed'
           : spentTime.toMin() > 1
           ? 'Snoozed'

@@ -32,26 +32,29 @@ export class TaskAppService {
       this.taskRepository.save(task);
     }
     const board = this.boardRepository.getById(task.boardId);
-    if (board.isTaskCompleted(taskId)) {
-      board.cancelTaskCompletion(taskId);
+    if (board.isTaskCompleted(task)) {
+      board.cancelTaskCompletion(task);
       this.boardRepository.save(board);
     }
-    const currEmployeeTask = this.taskManager.getEmployeeWorkingTaskId(employeeId);
-    if (currEmployeeTask) {
-      this.taskManager.stopWorkOnTask(employeeId, currEmployeeTask);
+    const currEmployeeTaskId = this.taskManager.getEmployeeWorkingTaskId(employeeId);
+    if (currEmployeeTaskId) {
+      const currEmployeeTask = this.taskRepository.getById(currEmployeeTaskId);
+      this.boardRepository
+        .getById(currEmployeeTask.boardId)
+        .stopWorkOnTask(employeeId, currEmployeeTask);
     }
-    board.startWorkOnTask(employeeId, task, this.taskManager);
+    board.startWorkOnTask(employeeId, task);
   }
 
   @Transactional()
   snoozeTask(taskId: Task['id']): void {
     const task = this.taskRepository.getById(taskId);
     const board = this.boardRepository.getById(task.boardId);
-    if (board.isTaskCompleted(taskId)) {
-      board.cancelTaskCompletion(taskId);
+    if (board.isTaskCompleted(task)) {
+      board.cancelTaskCompletion(task);
       this.boardRepository.save(board);
     } else {
-      this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
+      board.stopWorkOnTask(task.getExecutorIds()[0], task);
     }
   }
 
@@ -60,9 +63,9 @@ export class TaskAppService {
     const task = this.taskRepository.getById(taskId);
     const board = this.boardRepository.getById(task.boardId);
     if (this.taskManager.isTaskInWork(taskId)) {
-      this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
+      board.stopWorkOnTask(task.getExecutorIds()[0], task);
     }
-    board.completeTask(task, this.taskManager);
+    board.completeTask(task);
     this.boardRepository.save(board);
   }
 
