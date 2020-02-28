@@ -69,7 +69,7 @@ export class TaskAppService {
   @Transactional()
   reportTaskProgress(taskId: Task['id'], progress: number): void {
     const task = this.taskRepository.getById(taskId);
-    const taskSpentTime = this.taskManager.getFullTaskSpentTime(task.id);
+    const taskSpentTime = this.taskManager.getTaskSpentTime(task.id);
     task.setNeededTime(Time.fromMs(taskSpentTime.toMs() / Percent.fromInt(progress).toFloat()));
     this.taskRepository.save(task);
   }

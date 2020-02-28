@@ -46,7 +46,7 @@ export class TaskManager {
     this.timeTrackerRepository.save(timeTracker);
   }
 
-  getFullTaskSpentTime(taskId: Task['id']): Time {
+  getTaskSpentTime(taskId: Task['id']): Time {
     return Time.fromMs(
       this.timeTrackerRepository
         .getAllByTask(taskId)

@@ -72,23 +72,26 @@ server.post('/api/employee/:boardId', (req, res) => {
 server.get('/api/task/:boardId', (req, res) => {
   const board = boardRepository.getById(req.params.boardId);
   res.json(
-    taskRepository.getAllForBoard(req.params.boardId).map((task) => ({
-      ...task,
-      status: taskManager.isTaskInWork(task.id)
-        ? 'InWork'
-        : board.isTaskCompleted(task.id)
-        ? 'Completed'
-        : taskManager.getFullTaskSpentTime(task.id).toMs() > 0
-        ? 'Snoozed'
-        : 'Planned',
-      spentTime: taskManager.getFullTaskSpentTime(task.id).toMin(),
-      plannedTime: task.plannedTime.toMin(),
-      neededTime: task.getNeededTime().toMin(),
-      employeeName: task.getExecutorIds().length
-        ? employeeRepository.getById(task.getExecutorIds()[0]).name
-        : '',
-      tag: task.tagId,
-    })),
+    taskRepository.getAllForBoard(req.params.boardId).map((task) => {
+      const spentTime = taskManager.getTaskSpentTime(task.id);
+      return {
+        ...task,
+        status: taskManager.isTaskInWork(task.id)
+          ? 'InWork'
+          : board.isTaskCompleted(task.id)
+          ? 'Completed'
+          : spentTime.toMin() > 1
+          ? 'Snoozed'
+          : 'Planned',
+        spentTime: spentTime.toMin(),
+        plannedTime: task.plannedTime.toMin(),
+        neededTime: task.getNeededTime().toMin(),
+        employeeName: task.getExecutorIds().length
+          ? employeeRepository.getById(task.getExecutorIds()[0]).name
+          : '',
+        tag: task.tagId,
+      };
+    }),
   );
 });
 

@@ -54,8 +54,8 @@ describe(TaskManager.name, () => {
     expect(() => taskManager.stopWorkOnTask(employeeId, task.id)).toThrow();
   });
 
-  it('+getFullTaskSpentTime() should returns Time', () => {
-    const time = taskManager.getFullTaskSpentTime(task.id);
+  it('+getTaskSpentTime() should returns Time', () => {
+    const time = taskManager.getTaskSpentTime(task.id);
     expect(time.toMs()).toBe(0);
   });
 });
