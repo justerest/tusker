@@ -11,6 +11,7 @@
   "author": "justerest",
   "license": "ISC",
   "dependencies": {
+    "core-js": "^3.6.4",
     "express": "^4.17.1",
     "fs-extra": "^8.1.0",
     "lodash": "^4.17.15",

@@ -1,3 +1,4 @@
+import 'core-js/features/array/flat-map';
 import express from 'express';
 import { BoardAppService } from './BoardAppService';
 import { resolve } from 'path';
