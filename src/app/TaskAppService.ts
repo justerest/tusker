@@ -8,7 +8,6 @@ import { BoardRepository } from 'src/core/board/BoardRepository';
 import { Board } from 'src/core/board/Board';
 import { Tag } from 'src/core/tag/Tag';
 import { TaskManager } from 'src/core/task-manager/TaskManager';
-import { TimeTrackerRepository } from 'src/core/task-manager/TimeTrackerRepository';
 import { Identity } from 'src/core/common/Identity';
 
 export class TaskAppService {
@@ -16,7 +15,6 @@ export class TaskAppService {
     private boardRepository: BoardRepository,
     private taskRepository: TaskRepository,
     private taskManager: TaskManager,
-    private timeTrackerRepository: TimeTrackerRepository,
   ) {}
 
   @Transactional()
@@ -38,8 +36,7 @@ export class TaskAppService {
       board.cancelTaskCompletion(taskId);
       this.boardRepository.save(board);
     }
-    const timeTracker = board.startWorkOnTask(employeeId, task, this.taskManager);
-    this.timeTrackerRepository.save(timeTracker);
+    board.startWorkOnTask(employeeId, task, this.taskManager);
   }
 
   @Transactional()
@@ -50,8 +47,7 @@ export class TaskAppService {
       board.cancelTaskCompletion(taskId);
       this.boardRepository.save(board);
     } else {
-      const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
-      this.timeTrackerRepository.save(timeTracker);
+      this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
     }
   }
 
@@ -60,8 +56,7 @@ export class TaskAppService {
     const task = this.taskRepository.getById(taskId);
     const board = this.boardRepository.getById(task.boardId);
     if (this.taskManager.isTaskInWork(taskId)) {
-      const timeTracker = this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
-      this.timeTrackerRepository.save(timeTracker);
+      this.taskManager.stopWorkOnTask(task.getExecutorIds()[0], task.id);
     }
     board.completeTask(task, this.taskManager);
     this.boardRepository.save(board);

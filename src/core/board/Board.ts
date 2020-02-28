@@ -6,7 +6,6 @@ import { WorkingTime } from '../employee/WorkingTime';
 import { Identity } from '../common/Identity';
 import { Project } from '../project/Project';
 import { TaskManager } from '../task-manager/TaskManager';
-import { TimeTracker } from '../task-manager/TimeTracker';
 import { remove } from 'lodash';
 
 export class Board {
@@ -92,18 +91,23 @@ export class Board {
     assert(!this.isCompleted(), 'Can not work with completed board');
   }
 
-  startWorkOnTask(employeeId: Employee['id'], task: Task, taskManager: TaskManager): TimeTracker {
+  startWorkOnTask(employeeId: Employee['id'], task: Task, taskManager: TaskManager): void {
+    this.assertTaskAttachedToThisBoard(task);
     this.assertBoardNotCompleted();
     assert(!this.isTaskCompleted(task.id), 'Can not work on completed task');
-    return taskManager.startWorkOnTask(employeeId, task);
+    taskManager.startWorkOnTask(employeeId, task.id);
+  }
+
+  private assertTaskAttachedToThisBoard(task: Task) {
+    assert(Identity.equals(task.boardId, this.id), 'Task not from board');
   }
 
   isTaskCompleted(taskId: Task['id']): boolean {
-    return this.completedTasks.includes(taskId);
+    return this.completedTasks.some((id) => Identity.equals(id, taskId));
   }
 
   completeTask(task: Task, taskManager: TaskManager): void {
-    assert(Identity.equals(task.boardId, this.id), 'Task not from board');
+    this.assertTaskAttachedToThisBoard(task);
     assert(!this.isTaskCompleted(task.id), 'Task already completed');
     assert(!taskManager.isTaskInWork(task.id), 'Can not complete working task');
     this.completedTasks.push(task.id);

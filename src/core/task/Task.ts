@@ -1,4 +1,4 @@
-import { assert } from '../../utils/assert';
+import { assert } from 'src/utils/assert';
 import { Identity } from '../common/Identity';
 import { Employee } from '../employee/Employee';
 import { Time } from '../Time';

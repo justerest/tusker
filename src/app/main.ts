@@ -18,14 +18,9 @@ const taskRepository = new FileSystemTaskRepository();
 const employeeRepository = new FileSystemEmployeeRepository();
 const tagRepository = new FileSystemTagRepository();
 const timeTrackerRepository = new FileSystemTimeTrackerRepository();
-const taskManager = new TaskManager(timeTrackerRepository);
+const taskManager = new TaskManager(timeTrackerRepository, taskRepository);
 const boardAppService = new BoardAppService(projectRepository, boardRepository, employeeRepository);
-const taskAppService = new TaskAppService(
-  boardRepository,
-  taskRepository,
-  taskManager,
-  timeTrackerRepository,
-);
+const taskAppService = new TaskAppService(boardRepository, taskRepository, taskManager);
 const timeReportAppService = new TimeReportAppService(
   taskRepository,
   tagRepository,

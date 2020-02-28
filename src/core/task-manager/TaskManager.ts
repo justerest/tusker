@@ -4,18 +4,23 @@ import { assert } from 'src/utils/assert';
 import { TimeTrackerRepository } from './TimeTrackerRepository';
 import { TimeTracker } from './TimeTracker';
 import { Time } from '../Time';
+import { TaskRepository } from '../task/TaskRepository';
 
 export class TaskManager {
-  constructor(private timeTrackerRepository: TimeTrackerRepository) {}
+  constructor(
+    private timeTrackerRepository: TimeTrackerRepository,
+    private taskRepository: TaskRepository,
+  ) {}
 
-  startWorkOnTask(employeeId: Employee['id'], task: Task): TimeTracker {
-    assert(task.getExecutorIds().includes(employeeId), 'Task not assigned to employee');
+  startWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): void {
     this.assertEmployeeFree(employeeId);
+    const task = this.taskRepository.getById(taskId);
+    assert(task.getExecutorIds().includes(employeeId), 'Task not assigned to employee');
     const timeTracker =
       this.timeTrackerRepository.find(employeeId, task.id) ??
       this.createTracker(employeeId, task.id);
     timeTracker.start();
-    return timeTracker;
+    this.timeTrackerRepository.save(timeTracker);
   }
 
   private assertEmployeeFree(employeeId: Employee['id']) {
@@ -34,10 +39,10 @@ export class TaskManager {
     return tracker;
   }
 
-  stopWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): TimeTracker {
+  stopWorkOnTask(employeeId: Employee['id'], taskId: Task['id']): void {
     const timeTracker = this.timeTrackerRepository.get(employeeId, taskId);
     timeTracker.stop();
-    return timeTracker;
+    this.timeTrackerRepository.save(timeTracker);
   }
 
   getFullTaskSpentTime(taskId: Task['id']): Time {
