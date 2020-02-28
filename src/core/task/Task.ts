@@ -49,7 +49,6 @@ export class Task {
   }
 
   assignExecutor(employeeId: Employee['id']): void {
-    assert(!this.executorId, 'Can not assign second executor on task');
     this.executorId = employeeId;
   }
 
