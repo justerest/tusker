@@ -28,7 +28,6 @@ export class Task {
   title: string = '';
   plannedTime: Time = Time.fromMs(0);
   private neededTime = Time.fromMs(0);
-  creationDate: Date = new Date();
   private executorId?: Employee['id'];
 
   constructor() {}

@@ -7,9 +7,8 @@ import { assert } from 'src/utils/assert';
 export class FileSystemTimeTrackerRepository extends FileSystemRepository<TimeTracker & { id: any }>
   implements TimeTrackerRepository {
   protected entityName = TimeTracker.name;
-  protected serialize = (tracker: TimeTracker) => ({ ...tracker });
-  protected deserialize = (tracker: TimeTracker) =>
-    Object.assign(new TimeTracker(), tracker) as any;
+  protected serialize = TimeTracker.serialize;
+  protected deserialize = TimeTracker.deserialize as any;
 
   get(employeeId: Identity, taskId: Identity): TimeTracker {
     const tracker = this.find(employeeId, taskId);

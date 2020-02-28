@@ -21,13 +21,13 @@ export class TimeReportAppService {
   ) {}
 
   getTimeReports(employeeId: Employee['id']): TimeReport[] {
-    const tasks = this.timeTrackerRepository.getByEmployee(employeeId).map((tracker) => {
+    const tasks = this.timeTrackerRepository.getByEmployee(employeeId).flatMap((tracker) => {
       const task = this.taskRepository.getById(tracker.taskId);
-      return {
+      return tracker.getSpentPeriods().map((period) => ({
         tag: task.tagId && this.tagRepository.getById(task.tagId),
-        spentTime: Time.fromMs(tracker.getSpentTime()),
-        date: SimpleDate.fromDate(task.creationDate),
-      };
+        spentTime: period.getSpentTime(),
+        date: period.getSimpleDate(),
+      }));
     });
     const groups = groupBy(tasks, (task) => task.date.toInt() + (task.tag?.id.toString() || ''));
     return Object.values(groups).map((taskGroup) => ({

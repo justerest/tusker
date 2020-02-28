@@ -49,7 +49,7 @@ export class TaskManager {
     return Time.fromMs(
       this.timeTrackerRepository
         .getAllByTask(taskId)
-        .reduce((res, tracker) => res + tracker.getSpentTime(), 0),
+        .reduce((res, tracker) => res + tracker.getSpentTime().toMs(), 0),
     );
   }
 
